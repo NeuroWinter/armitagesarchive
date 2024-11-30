@@ -83,16 +83,19 @@ defmodule Armitage.ReadWise do
     end
   end
 
-  # Helper to fetch a single highlight from a random page
+
   @spec fetch_highlight_by_page(integer()) :: {:ok, highlight()} | {:error, any()}
   defp fetch_highlight_by_page(page) do
     url = "https://readwise.io/api/v2/highlights/?page=#{page}&page_size=1"
+
     case make_request(url) do
       {:ok, %{"results" => [highlight]}} -> {:ok, highlight}
-      {:ok, _} -> {:error, "No highlights found on the specified page"}
+      {:ok, %{"results" => []}} -> {:error, "No highlights found on the specified page"}
+      {:ok, _} -> {:error, "Unexpected response structure"}
       {:error, error} -> {:error, error}
     end
   end
+
 
   # Generic helper for making HTTP requests
   @spec make_request(String.t()) :: {:ok, map()} | {:error, any()}
