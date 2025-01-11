@@ -46,7 +46,6 @@ defmodule Armitage.ReadWise do
           document_note: String.t() | nil
         }
 
-
   # Access token retrieval and setup
   @spec get_access_token() :: String.t()
   def get_access_token() do
@@ -92,6 +91,7 @@ defmodule Armitage.ReadWise do
       {:ok, total} when total > 0 ->
         # Calculate the total number of pages (page_size = 1 means total = total_pages)
         random_page = Enum.random(1..total)
+
         fetch_highlight_by_page(random_page)
         # now we need to get the book info for this highlight
         |> case do
@@ -101,12 +101,19 @@ defmodule Armitage.ReadWise do
                 merged_highlight = Map.merge(highlight, sanitize_book_details(book))
                 sanitized_highlight = sanitize_highlight_text(merged_highlight)
                 {:ok, sanitized_highlight}
-              {:error, error} -> {:error, error}
+
+              {:error, error} ->
+                {:error, error}
             end
-          {:ok, _} -> {:error, "Unexpected response structure"}
-          {:error, error} -> {:error, error}
+
+          {:ok, _} ->
+            {:error, "Unexpected response structure"}
+
+          {:error, error} ->
+            {:error, error}
         end
-        # Now create a new map that has all of the info including the book deatails in in.
+
+      # Now create a new map that has all of the info including the book deatails in in.
 
       {:ok, _} ->
         {:error, "No highlights available"}
@@ -158,9 +165,11 @@ defmodule Armitage.ReadWise do
 
   @spec sanitize_highlight_text(map()) :: map()
   def sanitize_highlight_text(%{"text" => text} = highlight) when is_binary(text) do
-    updated_text = text
-    |> convert_markdown_links()
-    |> remove_bad_references()
+    updated_text =
+      text
+      |> convert_markdown_links()
+      |> remove_bad_references()
+
     Map.put(highlight, "text", updated_text)
   end
 
@@ -169,9 +178,10 @@ defmodule Armitage.ReadWise do
   @spec convert_markdown_links(String.t()) :: String.t()
   defp convert_markdown_links(text) do
     regex = ~r/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/
-      Regex.replace(regex, text, fn _, link_text, url ->
-        "<a href=\"#{url}\">#{link_text}</a>"
-      end)
+
+    Regex.replace(regex, text, fn _, link_text, url ->
+      "<a href=\"#{url}\">#{link_text}</a>"
+    end)
   end
 
   @spec remove_bad_references(String.t()) :: String.t()
@@ -196,13 +206,12 @@ defmodule Armitage.ReadWise do
   @spec fetch_book_info_by_id(integer()) :: {:ok, book_details()} | {:error, any()}
   defp fetch_book_info_by_id(id) do
     url = "https://readwise.io/api/v2/books/#{id}/"
+
     case make_request(url) do
       {:ok, book} -> {:ok, book}
       {:error, error} -> {:error, error}
     end
-
   end
-
 
   # Generic helper for making HTTP requests
   @spec make_request(String.t()) :: {:ok, map()} | {:error, any()}
@@ -217,4 +226,3 @@ defmodule Armitage.ReadWise do
     end
   end
 end
-
