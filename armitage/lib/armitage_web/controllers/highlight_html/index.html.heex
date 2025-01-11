@@ -1,3 +1,11 @@
 <section>
-    <p><%= @highlight["text"] %></p>
+  <p><%= raw(@highlight["text"]) %></p>
+  <hr>
+  <p><%= @highlight["author"] %> -
+    <%= if @highlight["source_url"] do %>
+      <a href={@highlight["source_url"]}><%= @highlight["title"] %></a>
+    <% else %>
+      <%= @highlight["title"] %>
+    <% end %>
+  </p>
 </section>

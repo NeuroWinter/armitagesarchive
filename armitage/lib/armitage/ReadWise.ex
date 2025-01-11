@@ -28,6 +28,24 @@ defmodule Armitage.ReadWise do
           results: list(highlight())
         }
 
+  # This is what the book endpoint returns:
+  @type book_details :: %{
+          id: integer(),
+          title: String.t(),
+          author: String.t(),
+          category: String.t(),
+          source: String.t(),
+          num_highlights: integer(),
+          last_highlight_at: String.t(),
+          updated: String.t(),
+          cover_image_url: String.t(),
+          highlights_url: String.t(),
+          source_url: String.t() | nil,
+          asin: String.t(),
+          tags: list(tag()),
+          document_note: String.t() | nil
+        }
+
   # Access token retrieval and setup
   @spec get_access_token() :: String.t()
   def get_access_token() do
@@ -73,7 +91,29 @@ defmodule Armitage.ReadWise do
       {:ok, total} when total > 0 ->
         # Calculate the total number of pages (page_size = 1 means total = total_pages)
         random_page = Enum.random(1..total)
+
         fetch_highlight_by_page(random_page)
+        # now we need to get the book info for this highlight
+        |> case do
+          {:ok, %{"book_id" => book_id} = highlight} ->
+            case fetch_book_info_by_id(book_id) do
+              {:ok, book} ->
+                merged_highlight = Map.merge(highlight, sanitize_book_details(book))
+                sanitized_highlight = sanitize_highlight_text(merged_highlight)
+                {:ok, sanitized_highlight}
+
+              {:error, error} ->
+                {:error, error}
+            end
+
+          {:ok, _} ->
+            {:error, "Unexpected response structure"}
+
+          {:error, error} ->
+            {:error, error}
+        end
+
+      # Now create a new map that has all of the info including the book deatails in in.
 
       {:ok, _} ->
         {:error, "No highlights available"}
@@ -83,6 +123,72 @@ defmodule Armitage.ReadWise do
     end
   end
 
+  @spec sanitize_book_details(book_details()) :: book_details()
+  defp sanitize_book_details(%{"source_url" => url} = highlight) when is_binary(url) do
+    highlight
+    |> remove_disallowed_prefixes()
+    |> remove_disallowed_hosts()
+  end
+
+  defp sanitize_book_details(highlight), do: highlight
+
+  @spec remove_disallowed_prefixes(book_details()) :: book_details()
+  defp remove_disallowed_prefixes(%{"source_url" => url} = highlight) do
+    disallowed_prefixes = ["private://", "internal://", "file://", "mailto:"]
+
+    if Enum.any?(disallowed_prefixes, fn prefix -> String.starts_with?(url, prefix) end) do
+      Map.delete(highlight, "source_url")
+    else
+      highlight
+    end
+  end
+
+  defp remove_disallowed_prefixes(highlight), do: highlight
+
+  defp remove_disallowed_hosts(%{"source_url" => url} = highlight) do
+    disallowed_hosts = ["readwise.com", "localhost"]
+
+    case URI.parse(url) do
+      %URI{host: host} when is_binary(host) ->
+        if Enum.member?(disallowed_hosts, host) do
+          Map.delete(highlight, "source_url")
+        else
+          highlight
+        end
+
+      _ ->
+        highlight
+    end
+  end
+
+  defp remove_disallowed_hosts(highlight), do: highlight
+
+  @spec sanitize_highlight_text(map()) :: map()
+  def sanitize_highlight_text(%{"text" => text} = highlight) when is_binary(text) do
+    updated_text =
+      text
+      |> convert_markdown_links()
+      |> remove_bad_references()
+
+    Map.put(highlight, "text", updated_text)
+  end
+
+  def sanitize_highlight_text(highlight), do: highlight
+
+  @spec convert_markdown_links(String.t()) :: String.t()
+  defp convert_markdown_links(text) do
+    regex = ~r/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/
+
+    Regex.replace(regex, text, fn _, link_text, url ->
+      "<a href=\"#{url}\">#{link_text}</a>"
+    end)
+  end
+
+  @spec remove_bad_references(String.t()) :: String.t()
+  defp remove_bad_references(text) do
+    regex = ~r/\[\d\]\((private:\/\/|https:\/\/|http:\/\/).*\)/
+    Regex.replace(regex, text, "")
+  end
 
   @spec fetch_highlight_by_page(integer()) :: {:ok, highlight()} | {:error, any()}
   defp fetch_highlight_by_page(page) do
@@ -96,6 +202,16 @@ defmodule Armitage.ReadWise do
     end
   end
 
+  # TODO: change to a real type
+  @spec fetch_book_info_by_id(integer()) :: {:ok, book_details()} | {:error, any()}
+  defp fetch_book_info_by_id(id) do
+    url = "https://readwise.io/api/v2/books/#{id}/"
+
+    case make_request(url) do
+      {:ok, book} -> {:ok, book}
+      {:error, error} -> {:error, error}
+    end
+  end
 
   # Generic helper for making HTTP requests
   @spec make_request(String.t()) :: {:ok, map()} | {:error, any()}
@@ -110,4 +226,3 @@ defmodule Armitage.ReadWise do
     end
   end
 end
-
