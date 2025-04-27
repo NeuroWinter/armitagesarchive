@@ -1,0 +1,71 @@
+/* no-style-please inspired minimal CSS */
+
+:root {
+  --font-body: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --color-text: #000;
+  --color-link: #000;
+  --max-width: 42rem;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-body);
+  line-height: 1.6;
+  font-size: 1rem;
+  color: var(--color-text);
+  background: #fff;
+}
+
+main {
+  max-width: var(--max-width);
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+h1, h2, h3, h4 {
+  font-weight: 600;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+a {
+  color: var(--color-link);
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+p {
+  margin: 1rem 0;
+}
+
+code {
+  font-family: monospace;
+  font-size: 0.95em;
+  background: none;
+  padding: 0;
+}
+
+pre {
+  font-family: monospace;
+  font-size: 0.95em;
+  overflow-x: auto;
+}
+
+blockquote {
+  border-left: 4px solid #ccc;
+  padding-left: 1rem;
+  color: #555;
+  margin: 1rem 0;
+}
+
+ul, ol {
+  padding-left: 1.5rem;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid #ccc;
+  margin: 2rem 0;
+}
+
