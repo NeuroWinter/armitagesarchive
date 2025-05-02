@@ -76,3 +76,13 @@ config :swoosh, :api_client, false
 
 
 config :armitage, :readwise_access_token, System.get_env("READWISE_ACCESS_TOKEN")
+
+config :armitage, Armitage.Repo,
+  username: "postgres",
+  password: "postgres",
+  hostname: "localhost",
+  database: "armitage_dev",
+  port: 5432,
+  pool_size: 10,
+  show_sensitive_data_on_connection_error: true,
+  stacktrace: true

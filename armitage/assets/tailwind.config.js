@@ -15,11 +15,39 @@ module.exports = {
     extend: {
       colors: {
         brand: "#FD4F00",
-      }
+      },
+      fontFamily: {
+        // sans: ['ui-sans-serif', 'system-ui', 'sans-serif'],
+        sans: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+      },
+      typography: {
+        DEFAULT: {
+          css: {
+            color: '#000',
+            a: {
+              color: '#000',
+              textDecoration: 'underline',
+              '&:hover': {
+                color: '#555',
+              },
+            },
+            h1: {
+              fontSize: '2rem',
+              fontWeight: '700',
+              marginBottom: '1rem',
+            },
+            p: {
+              marginBottom: '1rem',
+            },
+          },
+        },
+      },
     },
   },
   plugins: [
     require("@tailwindcss/forms"),
+    require('@tailwindcss/typography'),
     // Allows prefixing tailwind classes with LiveView classes to add rules
     // only when LiveView classes are applied, for example:
     //

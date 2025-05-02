@@ -8,7 +8,9 @@
 import Config
 
 config :armitage,
-  generators: [timestamp_type: :utc_datetime]
+  generators: [timestamp_type: :utc_datetime],
+  ecto_repos: [Armitage.Repo]
+
 
 # Configures the endpoint
 config :armitage, ArmitageWeb.Endpoint,

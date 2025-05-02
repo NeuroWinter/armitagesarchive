@@ -1,5 +1,6 @@
 defmodule Armitage.ReadWise do
   require Req
+  import Ecto.Query
 
   # Type specifications for clarity and maintainability
   @type tag :: %{
@@ -85,43 +86,54 @@ defmodule Armitage.ReadWise do
   end
 
   # Fetch a random highlight
-  @spec get_random_highlight() :: {:ok, highlight()} | {:error, any()}
+
+  @spec get_random_highlight() :: {:ok, Armitage.Highlight.t()} | {:error, any()}
   def get_random_highlight() do
-    case get_total_highlights() do
-      {:ok, total} when total > 0 ->
-        # Calculate the total number of pages (page_size = 1 means total = total_pages)
-        random_page = Enum.random(1..total)
-
-        fetch_highlight_by_page(random_page)
-        # now we need to get the book info for this highlight
-        |> case do
-          {:ok, %{"book_id" => book_id} = highlight} ->
-            case fetch_book_info_by_id(book_id) do
-              {:ok, book} ->
-                merged_highlight = Map.merge(highlight, sanitize_book_details(book))
-                sanitized_highlight = sanitize_highlight_text(merged_highlight)
-                {:ok, sanitized_highlight}
-
-              {:error, error} ->
-                {:error, error}
-            end
-
-          {:ok, _} ->
-            {:error, "Unexpected response structure"}
-
-          {:error, error} ->
-            {:error, error}
-        end
-
-      # Now create a new map that has all of the info including the book deatails in in.
-
-      {:ok, _} ->
-        {:error, "No highlights available"}
-
-      {:error, error} ->
-        {:error, error}
+    case Armitage.Repo.all(Armitage.Highlight) do
+      [] -> {:error, "No highlights available"}
+      highlights -> {:ok, Enum.random(highlights)}
     end
   end
+
+
+
+  #@spec get_random_highlight() :: {:ok, highlight()} | {:error, any()}
+  #def get_random_highlight() do
+  #  case get_total_highlights() do
+  #    {:ok, total} when total > 0 ->
+  #      # Calculate the total number of pages (page_size = 1 means total = total_pages)
+  #      random_page = Enum.random(1..total)
+
+  #      fetch_highlight_by_page(random_page)
+  #      # now we need to get the book info for this highlight
+  #      |> case do
+  #        {:ok, %{"book_id" => book_id} = highlight} ->
+  #          case fetch_book_info_by_id(book_id) do
+  #            {:ok, book} ->
+  #              merged_highlight = Map.merge(highlight, sanitize_book_details(book))
+  #              sanitized_highlight = sanitize_highlight_text(merged_highlight)
+  #              {:ok, sanitized_highlight}
+
+  #            {:error, error} ->
+  #              {:error, error}
+  #          end
+
+  #        {:ok, _} ->
+  #          {:error, "Unexpected response structure"}
+
+  #        {:error, error} ->
+  #          {:error, error}
+  #      end
+
+  #    # Now create a new map that has all of the info including the book deatails in in.
+
+  #    {:ok, _} ->
+  #      {:error, "No highlights available"}
+
+  #    {:error, error} ->
+  #      {:error, error}
+  #  end
+  #end
 
   @spec sanitize_book_details(book_details()) :: book_details()
   defp sanitize_book_details(%{"source_url" => url} = highlight) when is_binary(url) do
@@ -146,7 +158,7 @@ defmodule Armitage.ReadWise do
   defp remove_disallowed_prefixes(highlight), do: highlight
 
   defp remove_disallowed_hosts(%{"source_url" => url} = highlight) do
-    disallowed_hosts = ["readwise.com", "localhost"]
+    disallowed_hosts = ["readwise.com", "localhost", "readwise.io"]
 
     case URI.parse(url) do
       %URI{host: host} when is_binary(host) ->
@@ -225,4 +237,88 @@ defmodule Armitage.ReadWise do
       {:error, error} -> {:error, "Request error: #{inspect(error)}"}
     end
   end
+
+
+
+  @spec sync_all_highlights() :: :ok
+  def sync_all_highlights do
+    sync_all_highlights_paginated(1)
+  end
+
+  defp sync_all_highlights_paginated(page) do
+    url = "https://readwise.io/api/v2/highlights/?page=#{page}&page_size=100"
+
+    case make_request(url) do
+      {:ok, %{"results" => results, "next" => next}} ->
+        results
+        |> Enum.each(&cache_highlight/1)
+
+        if next do
+          sync_all_highlights_paginated(page + 1)
+        else
+          :ok
+        end
+
+      {:error, reason} ->
+        IO.puts("Failed to fetch page #{page}: #{inspect(reason)}")
+        :ok
+    end
+  end
+
+  defp cache_highlight(%{"id" => id} = highlight) do
+    case Armitage.Repo.get_by(Armitage.Highlight, readwise_id: id) do
+      nil ->
+        %Armitage.Highlight{}
+        |> Armitage.Highlight.changeset(%{
+          readwise_id: highlight["id"],
+          text: highlight["text"],
+          note: highlight["note"],
+          location: to_string(highlight["location"]),
+          location_type: highlight["location_type"],
+          highlighted_at: parse_optional_datetime(highlight["highlighted_at"]),
+          url: highlight["url"],
+          color: highlight["color"],
+          updated: highlight["updated"],
+          book_id: highlight["book_id"],
+          book_title: nil,
+          book_author: nil
+        })
+        |> Armitage.Repo.insert()
+
+      _ ->
+        :ok
+    end
+  end
+
+  defp parse_optional_datetime(nil), do: nil
+  defp parse_optional_datetime(datetime) do
+    case NaiveDateTime.from_iso8601(datetime) do
+      {:ok, naive_dt} -> naive_dt
+      _ -> nil
+    end
+  end
+
+  @spec backfill_book_info() :: :ok
+  def backfill_book_info do
+    Armitage.Repo.all(from h in Armitage.Highlight, where: is_nil(h.book_title) or is_nil(h.book_author))
+    |> Enum.each(fn highlight ->
+      case fetch_book_info_by_id(highlight.book_id) do
+        {:ok, book} ->
+          sanitized_book = sanitize_book_details(book)
+          highlight
+          |> Armitage.Highlight.changeset(%{
+            book_title: sanitized_book["title"],
+            book_author: sanitized_book["author"],
+            url: sanitized_book["source_url"]
+          })
+          |> Armitage.Repo.update()
+
+        {:error, reason} ->
+          IO.puts("Failed to fetch book for highlight #{highlight.id}: #{inspect(reason)}")
+      end
+    end)
+
+    :ok
+  end
+
 end

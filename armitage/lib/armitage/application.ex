@@ -8,6 +8,7 @@ defmodule Armitage.Application do
   @impl true
   def start(_type, _args) do
     children = [
+      Armitage.Repo,
       ArmitageWeb.Telemetry,
       {DNSCluster, query: Application.get_env(:armitage, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Armitage.PubSub},
