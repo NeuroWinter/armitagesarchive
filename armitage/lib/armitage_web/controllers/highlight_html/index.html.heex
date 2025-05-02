@@ -1,9 +1,9 @@
 <section class="prose">
 <p><%= raw(@highlight.text) %></p>
 <hr>
-<p><%= @highlight.book_author %> -
-  <%= if @highlight.url do %>
-    <a href={@highlight.url}><%= @highlight.book_title %></a>
+<p><%= @highlight.book_ref.author %> -
+  <%= if @highlight.book_ref.url do %>
+    <a href={@highlight.book_ref.url}><%= @highlight.book_ref.title %></a>
   <% else %>
     <%= @highlight.book_title %>
   <% end %>

@@ -17,6 +17,8 @@ defmodule Armitage.Highlight do
     field :book_title, :string
     field :book_author, :string
 
+    belongs_to :book_ref, Armitage.Book
+
     timestamps()
   end
 
