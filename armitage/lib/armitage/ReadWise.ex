@@ -2,6 +2,10 @@ defmodule Armitage.ReadWise do
   require Req
   import Ecto.Query
 
+  alias Armitage.Book
+  alias Armitage.Repo
+  alias Armitage.Highlight
+
   # Type specifications for clarity and maintainability
   @type tag :: %{
           id: integer(),
@@ -86,10 +90,12 @@ defmodule Armitage.ReadWise do
   end
 
   # Fetch a random highlight
-
   @spec get_random_highlight() :: {:ok, Armitage.Highlight.t()} | {:error, any()}
   def get_random_highlight() do
-    case Armitage.Repo.all(Armitage.Highlight) do
+
+    query = from h in Armitage.Highlight, preload: [:book_ref]
+
+    case Armitage.Repo.all(query) do
       [] -> {:error, "No highlights available"}
       highlights -> {:ok, Enum.random(highlights)}
     end
@@ -320,5 +326,66 @@ defmodule Armitage.ReadWise do
 
     :ok
   end
+
+
+  @spec backfill_books_and_link_highlights() :: :ok
+  def backfill_books_and_link_highlights do
+    Highlight
+    |> select([h], h.book_id)
+    |> distinct(true)
+    |> Repo.all()
+    |> Enum.each(fn book_id ->
+      case fetch_book_info_by_id(book_id) do
+        {:ok, raw_book} ->
+          sanitized_book = sanitize_book_details(raw_book)
+          attrs = %{
+            readwise_book_id: book_id,
+            title: sanitized_book["title"],
+            author: sanitized_book["author"],
+            url: sanitized_book["source_url"],
+            category: sanitized_book["category"],
+            source: sanitized_book["source"]
+          }
+
+          sanitized = sanitize_book_details(attrs)
+
+          book =
+            Repo.get_by(Book, readwise_book_id: book_id) ||
+              Repo.insert!(Book.changeset(%Book{}, sanitized))
+
+          from(h in Highlight, where: h.book_id == ^book_id)
+          |> Repo.update_all(set: [book_ref_id: book.id])
+
+        {:error, reason} ->
+          IO.puts("Failed to fetch book #{book_id}: #{inspect(reason)}")
+      end
+    end)
+
+    :ok
+  end
+
+
+  @spec get_all_books() :: {:ok, list(book_details())} | {:error, any()}
+  def get_all_books() do
+    books =
+      from(b in Book,
+      where: b.category == "books",
+      order_by: b.title
+      )
+      |> Repo.all()
+    {:ok, books}
+  end
+
+  @spec get_all_books() :: {:ok, list(book_details())} | {:error, any()}
+  def get_all_articles() do
+    books =
+      from(b in Book,
+      where: b.category == "articles",
+      order_by: b.title
+      )
+      |> Repo.all()
+    {:ok, books}
+  end
+
 
 end

@@ -19,6 +19,7 @@ defmodule ArmitageWeb.Router do
 
     get "/", PageController, :home
     get "/highlights", HighlightController, :index
+    get "/books", BookController, :index
   end
 
   # Other scopes may use custom stacks.

@@ -1,0 +1,15 @@
+<section class="prose">
+  <h2>List of books with highlights</h2>
+
+  <ul>
+    <%= for book <- @books do %>
+      <li>
+        <strong><%= book.title %></strong>
+        <%= if book.author, do: "by #{book.author}" %>
+        <%= if book.url do %>
+          – <a href={book.url} class="underline">link</a>
+        <% end %>
+      </li>
+    <% end %>
+  </ul>
+</section>
