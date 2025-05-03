@@ -9,3 +9,5 @@ erl_crash.dump
 /config/*.secret.exs
 .elixir_ls/
 .tool-versions
+.env
+.env.dev
