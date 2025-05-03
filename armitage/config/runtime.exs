@@ -21,6 +21,19 @@ if System.get_env("PHX_SERVER") do
 end
 
 if config_env() == :prod do
+  database_url =
+    System.get_env("DATABASE_URL") ||
+      raise "DATABASE_URL is missing. Example: ecto://USER:PASS@HOST/DATABASE"
+
+  config :armitage, Armitage.Repo,
+    url: database_url,
+    pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
+    ssl: false
+
+  readwise_token =
+    System.get_env("READWISE_ACCESS_TOKEN") ||
+      raise "READWISE_ACCESS_TOKEN is missing."
+  config :armitage, :readwise_access_token, readwise_token
   # The secret key base is used to sign/encrypt cookies and other secrets.
   # A default value is used in config/dev.exs and config/test.exs but you
   # want to use a different value for prod and you most likely don't want

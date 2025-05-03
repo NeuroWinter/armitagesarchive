@@ -252,6 +252,7 @@ defmodule Armitage.ReadWise do
   end
 
   defp sync_all_highlights_paginated(page) do
+    IO.puts("Syncing page #{page}")
     url = "https://readwise.io/api/v2/highlights/?page=#{page}&page_size=100"
 
     case make_request(url) do

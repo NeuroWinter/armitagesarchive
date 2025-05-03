@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-armitage_prod}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  app:
+    build: .
+    depends_on:
+      - db
+    env_file:
+      - .env
+    environment:
+      PHX_SERVER: true  # This is really annoying and I always forget to include this bad boy
+      DATABASE_URL: ${DATABASE_URL}
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE}
+      READWISE_ACCESS_TOKEN: ${READWISE_ACCESS_TOKEN}
+      PHX_HOST: ${PHX_HOST}
+      PORT: ${PORT}
+      POOL_SIZE: ${POOL_SIZE:-10}
+    ports:
+      - "4000:4000"
+    command: ["bin/armitage", "start"]
+
+volumes:
+  pgdata:

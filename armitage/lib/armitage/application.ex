@@ -13,7 +13,7 @@ defmodule Armitage.Application do
       {DNSCluster, query: Application.get_env(:armitage, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Armitage.PubSub},
       # Start the Finch HTTP client for sending emails
-      {Finch, name: Armitage.Finch},
+      #{Finch, name: Req.Finch},
       # Start a worker by calling: Armitage.Worker.start_link(arg)
       # {Armitage.Worker, arg},
       # Start to serve requests, typically the last entry

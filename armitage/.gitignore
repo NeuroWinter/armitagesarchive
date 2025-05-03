@@ -36,3 +36,16 @@ npm-debug.log
 /assets/node_modules/
 
 .tool-versions
+
+.env
+.env.dev
+
+
+/elixir-tools/
+/priv/static/*.gz
+/priv/static/*.ico
+/priv/static/*.txt
+
+/elixir-tools/
+/priv/static/images/*.svg.gz
+/dev.entry.sh
