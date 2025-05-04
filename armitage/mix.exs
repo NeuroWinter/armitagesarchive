@@ -60,6 +60,9 @@ defmodule Armitage.MixProject do
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"},
       {:ecto_psql_extras, "~> 0.6"},
+      # I am using this to convert the markdown to html for highlights
+      # This is just really to get urls working as I expect ...
+      {:earmark, "~> 1.4"}
     ]
   end
 
