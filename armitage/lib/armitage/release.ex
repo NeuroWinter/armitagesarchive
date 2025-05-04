@@ -19,8 +19,16 @@ defmodule Armitage.Release do
   end
 
   def seed do
-    load_app()
-    run_seed_script()
+    migrate()
+    alter_books_url_length()
+    sync_readwise_highlights()
+    sanitize_highlights()
+    backfill_books()
+  end
+
+  def sanitize_highlights do
+    ensure_started()
+    ReadWise.sanitize_stored_highlights()
   end
 
   def sync_readwise_highlights do
@@ -56,29 +64,50 @@ defmodule Armitage.Release do
     "#{:code.priv_dir(app)}/repo/#{filename}"
   end
 
-  defp run_seed_script do
-    seed_script = Path.join([:code.priv_dir(:armitage), "repo", "seeds.exs"])
-    if File.exists?(seed_script), do: Code.eval_file(seed_script)
-  end
-
   def alter_books_url_length do
     load_app()
     for repo <- repos() do
       IO.puts("➡️  Starting #{inspect(repo)}")
-      {:ok, _} = repo.start_link(pool_size: 1)
+
+      case repo.start_link(pool_size: 1) do
+        {:ok, _} -> :ok
+        {:error, {:already_started, _}} -> :ok
+        {:error, reason} -> raise "❌ Failed to start repo: #{inspect(reason)}"
+      end
     end
+
     Ecto.Adapters.SQL.query!(
       Repo,
       "ALTER TABLE books ALTER COLUMN url TYPE varchar(2000);",
       []
     )
-  end
+    end
+
 
   defp load_app do
     Application.load(:armitage)
     for app <- [:logger, :crypto, :ssl, :telemetry, :ecto_sql, :postgrex] do
       {:ok, _} = Application.ensure_all_started(app)
     end
+  end
+
+  def reset(confirm \\ false)
+
+  def reset(false) do
+    raise """
+    This will delete all books and highlights.
+    If you really want to do this, call:
+
+        Armitage.Release.reset(true)
+    """
+  end
+
+  def reset(true) do
+    load_app()
+    IO.puts("WARNING: Resetting all highlight and book data...")
+    Repo.delete_all(Armitage.Highlight)
+    Repo.delete_all(Armitage.Book)
+    seed()
   end
 
 end

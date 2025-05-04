@@ -181,25 +181,36 @@ defmodule Armitage.ReadWise do
 
   defp remove_disallowed_hosts(highlight), do: highlight
 
-  @spec sanitize_highlight_text(map()) :: map()
-  def sanitize_highlight_text(%{"text" => text} = highlight) when is_binary(text) do
+  @spec sanitize_highlight_text(Armitage.Highlight.t()) :: Armitage.Highlight.t()
+  def sanitize_highlight_text(%Armitage.Highlight{text: text} = highlight) when is_binary(text) do
     updated_text =
       text
+      |> normalize_quotes()
       |> convert_markdown_links()
+      |> remove_internal_links()
       |> remove_bad_references()
 
-    Map.put(highlight, "text", updated_text)
+    %Armitage.Highlight{highlight | text: updated_text}
   end
 
   def sanitize_highlight_text(highlight), do: highlight
 
+  # This is to get rid of those annoying links to foot notes and stuff.
+  defp remove_internal_links(html) do
+    # Remove links like <a href="#rlink123">...</a>
+    Regex.replace(~r/<a href="#rlink\d+">(.*?)<\/a>/, html, "\\1", global: true)
+  end
+
+  defp normalize_quotes(text) do
+    text
+    |> String.replace(~r/[“”]/u, "\"")
+    |> String.replace(~r/[‘’]/u, "'")
+  end
+
+
   @spec convert_markdown_links(String.t()) :: String.t()
   defp convert_markdown_links(text) do
-    regex = ~r/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/
-
-    Regex.replace(regex, text, fn _, link_text, url ->
-      "<a href=\"#{url}\">#{link_text}</a>"
-    end)
+    Earmark.as_html!(text)
   end
 
   @spec remove_bad_references(String.t()) :: String.t()
@@ -386,6 +397,28 @@ defmodule Armitage.ReadWise do
       )
       |> Repo.all()
     {:ok, books}
+  end
+
+  @doc """
+  Sanitize the highlights that are stored in the database to remove a bunch of things.
+  """
+  def sanitize_stored_highlights do
+    Repo.transaction(fn ->
+      Repo.all(Highlight)
+      |> Enum.each(fn highlight ->
+        sanitized = sanitize_highlight_text(highlight)  # don't convert to map
+        IO.puts("Old text: #{highlight.text}")
+        IO.puts("New text: #{sanitized.text}")
+        if sanitized.text != highlight.text do
+          IO.puts("Updating highlight #{highlight.id}")
+          highlight
+          |> Ecto.Changeset.change(%{text: sanitized.text})  # use struct access
+          |> Repo.update!()
+        end
+      end)
+    end)
+
+    :ok
   end
 
 

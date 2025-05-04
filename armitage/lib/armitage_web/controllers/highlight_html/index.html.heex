@@ -1,11 +1,12 @@
 <section class="prose">
-<p><%= raw(@highlight.text) %></p>
-<hr>
-<p><%= @highlight.book_ref.author %> -
-  <%= if @highlight.book_ref.url do %>
-    <a href={@highlight.book_ref.url}><%= @highlight.book_ref.title %></a>
-  <% else %>
-    <%= @highlight.book_title %>
-  <% end %>
-</p>
+  <%= raw(@highlight.text) %>
+  <hr>
+  <p>
+    <%= @highlight.book_ref.author %> –
+    <%= if @highlight.book_ref.url do %>
+      <a href={@highlight.book_ref.url}><%= @highlight.book_ref.title %></a>
+    <% else %>
+      <%= @highlight.book_ref.title %>
+    <% end %>
+  </p>
 </section>
