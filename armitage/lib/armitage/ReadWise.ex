@@ -93,7 +93,7 @@ defmodule Armitage.ReadWise do
   @spec get_random_highlight() :: {:ok, Armitage.Highlight.t()} | {:error, any()}
   def get_random_highlight() do
 
-    query = from h in Armitage.Highlight, preload: [:book_ref]
+    query = from h in Armitage.Highlight, preload: [:book]
 
     case Armitage.Repo.all(query) do
       [] -> {:error, "No highlights available"}
@@ -186,9 +186,10 @@ defmodule Armitage.ReadWise do
     updated_text =
       text
       |> normalize_quotes()
+      |> remove_bad_references()
       |> convert_markdown_links()
       |> remove_internal_links()
-      |> remove_bad_references()
+      |> remove_private_href_links()
 
     %Armitage.Highlight{highlight | text: updated_text}
   end
@@ -215,8 +216,13 @@ defmodule Armitage.ReadWise do
 
   @spec remove_bad_references(String.t()) :: String.t()
   defp remove_bad_references(text) do
-    regex = ~r/\[\d\]\((private:\/\/|https:\/\/|http:\/\/).*\)/
-    Regex.replace(regex, text, "")
+    regex = ~r/\[\d\]\((private:\/\/|https?:\/\/).*?\)/
+    Regex.replace(regex, text, "", global: true)
+  end
+
+  defp remove_private_href_links(html) do
+    # Removes links like <a href="private://...">...</a>
+    Regex.replace(~r/<a href="private:\/\/[^"]*">(.*?)<\/a>/, html, "\\1", global: true)
   end
 
   @spec fetch_highlight_by_page(integer()) :: {:ok, highlight()} | {:error, any()}
@@ -297,9 +303,7 @@ defmodule Armitage.ReadWise do
           url: highlight["url"],
           color: highlight["color"],
           updated: highlight["updated"],
-          book_id: highlight["book_id"],
-          book_title: nil,
-          book_author: nil
+          readwise_book_id: highlight["book_id"]
         })
         |> Armitage.Repo.insert()
 
@@ -339,19 +343,20 @@ defmodule Armitage.ReadWise do
     :ok
   end
 
-
   @spec backfill_books_and_link_highlights() :: :ok
   def backfill_books_and_link_highlights do
     Highlight
-    |> select([h], h.book_id)
+    |> select([h], h.readwise_book_id)
+    |> where([h], not is_nil(h.readwise_book_id))
     |> distinct(true)
     |> Repo.all()
-    |> Enum.each(fn book_id ->
-      case fetch_book_info_by_id(book_id) do
+    |> Enum.each(fn readwise_book_id ->
+      case fetch_book_info_by_id(readwise_book_id) do
         {:ok, raw_book} ->
           sanitized_book = sanitize_book_details(raw_book)
+
           attrs = %{
-            readwise_book_id: book_id,
+            readwise_book_id: readwise_book_id,
             title: sanitized_book["title"],
             author: sanitized_book["author"],
             url: sanitized_book["source_url"],
@@ -362,14 +367,14 @@ defmodule Armitage.ReadWise do
           sanitized = sanitize_book_details(attrs)
 
           book =
-            Repo.get_by(Book, readwise_book_id: book_id) ||
+            Repo.get_by(Book, readwise_book_id: readwise_book_id) ||
               Repo.insert!(Book.changeset(%Book{}, sanitized))
 
-          from(h in Highlight, where: h.book_id == ^book_id)
-          |> Repo.update_all(set: [book_ref_id: book.id])
+          from(h in Highlight, where: h.readwise_book_id == ^readwise_book_id)
+          |> Repo.update_all(set: [book_id: book.id])
 
         {:error, reason} ->
-          IO.puts("Failed to fetch book #{book_id}: #{inspect(reason)}")
+          IO.puts("Failed to fetch book #{readwise_book_id}: #{inspect(reason)}")
       end
     end)
 

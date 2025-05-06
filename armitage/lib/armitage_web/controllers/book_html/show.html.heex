@@ -1,0 +1,19 @@
+<section class="prose">
+  <h1><%= @book.title %></h1>
+
+  <p><%= if @book.author, do: "by #{@book.author}" %></p>
+
+  <%= if @book.url do %>
+    <p>
+      <a href={@book.url} class="underline" target="_blank">Buy or read the book</a>
+    </p>
+  <% end %>
+
+  <h2>Highlights</h2>
+
+  <%= for highlight <- @book.highlights do %>
+    <div class="p-4 my-4 border-l-4 border-gray-300 bg-gray-50 rounded">
+      <%= raw(highlight.text) %>
+    </div>
+  <% end %>
+</section>

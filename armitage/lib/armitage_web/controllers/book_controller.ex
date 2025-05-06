@@ -2,6 +2,7 @@ import Armitage.ReadWise, only: [get_all_books: 0]
 
 defmodule ArmitageWeb.BookController do
   use ArmitageWeb, :controller
+  alias Armitage.{Repo, Book}
 
   def index(conn, _params) do
     # Lets change this to use the readwise module.
@@ -16,4 +17,13 @@ defmodule ArmitageWeb.BookController do
         |> render(:index, books: [])
     end
   end
+
+  def show(conn, %{"slug" => slug}) do
+    book =
+      Repo.get_by!(Book, slug: slug)
+      |> Repo.preload(:highlights)
+
+    render(conn, "show.html", book: book)
+  end
+
 end

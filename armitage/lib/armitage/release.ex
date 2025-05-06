@@ -6,6 +6,7 @@ defmodule Armitage.Release do
 
   alias Armitage.Repo
   alias Armitage.ReadWise
+  import Ecto.Query
 
   def migrate do
     load_app()
@@ -24,6 +25,7 @@ defmodule Armitage.Release do
     sync_readwise_highlights()
     sanitize_highlights()
     backfill_books()
+    link_highlights_to_books()
   end
 
   def sanitize_highlights do
@@ -56,13 +58,6 @@ defmodule Armitage.Release do
   end
 
   defp repos, do: Application.fetch_env!(:armitage, :ecto_repos)
-
-  defp migrations_path(repo), do: priv_path_for(repo, "migrations")
-
-  defp priv_path_for(repo, filename) do
-    app = Keyword.fetch!(repo.config, :otp_app)
-    "#{:code.priv_dir(app)}/repo/#{filename}"
-  end
 
   def alter_books_url_length do
     load_app()
@@ -109,6 +104,51 @@ defmodule Armitage.Release do
     Repo.delete_all(Armitage.Book)
     seed()
   end
+
+  def backfill_slugs do
+    Repo.start_link()
+
+    Repo.transaction(fn ->
+      Repo.all(
+        from b in Armitage.Book,
+        where: is_nil(b.slug) and b.category in ["books", "articles"]
+      )
+      |> Enum.each(fn book ->
+        changeset = Armitage.Book.changeset(book, %{})
+        case Repo.update(changeset) do
+          {:ok, _updated} ->
+            IO.puts("Slug added for: #{book.title}")
+          {:error, changeset} ->
+            IO.puts("Failed for: #{book.title}")
+            IO.inspect(changeset.errors)
+        end
+      end)
+    end)
+  end
+
+  def link_highlights_to_books do
+    import Ecto.Query
+
+    Repo.start_link()
+
+    Repo.transaction(fn ->
+      from(h in Armitage.Highlight, where: is_nil(h.book_id))
+      |> Repo.all()
+      |> Enum.each(fn highlight ->
+        case Repo.get_by(Armitage.Book, readwise_book_id: highlight.readwise_book_id) do
+          nil ->
+            IO.puts("No book found for highlight #{highlight.id} (readwise_book_id: #{highlight.readwise_book_id})")
+
+          book ->
+            highlight
+            |> Ecto.Changeset.change(book_id: book.id)
+            |> Repo.update()
+        end
+      end)
+    end)
+  end
+
+
 
 end
 

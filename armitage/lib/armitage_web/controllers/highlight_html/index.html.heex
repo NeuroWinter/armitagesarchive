@@ -2,11 +2,11 @@
   <%= raw(@highlight.text) %>
   <hr>
   <p>
-    <%= @highlight.book_ref.author %> –
-    <%= if @highlight.book_ref.url do %>
-      <a href={@highlight.book_ref.url}><%= @highlight.book_ref.title %></a>
+    <%= @highlight.book.author %> –
+    <%= if @highlight.book.url do %>
+      <a href={@highlight.book.url}><%= @highlight.book.title %></a>
     <% else %>
-      <%= @highlight.book_ref.title %>
+      <%= @highlight.book.title %>
     <% end %>
   </p>
 </section>
