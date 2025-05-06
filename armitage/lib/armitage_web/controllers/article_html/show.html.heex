@@ -1,0 +1,17 @@
+<section class="prose">
+  <h1><%= @article.title %></h1>
+
+  <p><%= if @article.author, do: "by #{@article.author}" %></p>
+
+  <%= if @article.url do %>
+    <p><a href={@article.url} class="underline" target="_blank">Original article</a></p>
+  <% end %>
+
+  <h2>Highlights</h2>
+
+  <%= for highlight <- @article.highlights do %>
+    <div class="p-4 my-4 border-l-4 border-gray-300 bg-gray-50 rounded">
+      <%= raw(highlight.text) %>
+    </div>
+  <% end %>
+</section>

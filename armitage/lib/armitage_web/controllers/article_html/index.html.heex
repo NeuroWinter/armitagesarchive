@@ -4,13 +4,16 @@
   <ul>
     <%= for article <- @articles do %>
       <li>
-        <strong><%= article.title %></strong>
-        <%= if article.author, do: "by #{article.author}" %>
+        <strong>
+          <.link navigate={~p"/articles/#{article.slug}"} class="underline">
+            <%= article.title %>
+          </.link>
+        </strong>
+        <%= if article.author, do: " by #{article.author}" %>
         <%= if article.url do %>
-          – <a href={article.url} class="underline">link</a>
+          – <a href={article.url} class="underline" target="_blank">source</a>
         <% end %>
       </li>
     <% end %>
   </ul>
 </section>
-

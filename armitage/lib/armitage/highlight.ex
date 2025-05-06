@@ -13,11 +13,9 @@ defmodule Armitage.Highlight do
     field :url, :string
     field :color, :string
     field :updated, :string
-    field :book_id, :integer
-    field :book_title, :string
-    field :book_author, :string
+    field :readwise_book_id, :integer
 
-    belongs_to :book_ref, Armitage.Book
+    belongs_to :book, Armitage.Book
 
     timestamps()
   end
@@ -34,11 +32,12 @@ defmodule Armitage.Highlight do
       :url,
       :color,
       :updated,
-      :book_id,
-      :book_title,
-      :book_author
+      :readwise_book_id,
+      :book_id
     ])
     |> validate_required([:readwise_id, :text])
     |> unique_constraint(:readwise_id)
   end
+
+
 end
