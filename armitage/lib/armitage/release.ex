@@ -26,6 +26,7 @@ defmodule Armitage.Release do
     sanitize_highlights()
     backfill_books()
     link_highlights_to_books()
+    tidy_forwarded_books()
   end
 
   def sanitize_highlights do
@@ -148,6 +149,14 @@ defmodule Armitage.Release do
     end)
   end
 
+  def tidy_forwarded_books do
+    import Ecto.Query
+
+    from(b in Armitage.Book,
+      where: like(b.title, "Fwd:%") and b.author == "alex@pikori.com"
+    )
+    |> Armitage.Repo.delete_all()
+  end
 
 
 end
