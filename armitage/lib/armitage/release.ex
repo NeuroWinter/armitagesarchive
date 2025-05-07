@@ -100,6 +100,7 @@ defmodule Armitage.Release do
 
   def reset(true) do
     load_app()
+    ensure_started()
     IO.puts("WARNING: Resetting all highlight and book data...")
     Repo.delete_all(Armitage.Highlight)
     Repo.delete_all(Armitage.Book)
