@@ -10,8 +10,9 @@
   <h2>Highlights</h2>
 
   <%= for highlight <- @article.highlights do %>
-    <div class="p-4 my-4 border-l-4 border-gray-300 bg-gray-50 rounded">
+    <div class="text-lg leading-relaxed text-gray-800 my-6">
       <%= raw(highlight.text) %>
     </div>
+    <hr />
   <% end %>
 </section>

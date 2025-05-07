@@ -1,12 +1,26 @@
-<section class="prose">
-  <%= raw(@highlight.text) %>
-  <hr>
-  <p>
-    <%= @highlight.book.author %> –
-    <%= if @highlight.book.url do %>
-      <a href={@highlight.book.url}><%= @highlight.book.title %></a>
-    <% else %>
-      <%= @highlight.book.title %>
-    <% end %>
-  </p>
+<section class="prose mx-auto max-w-prose flex flex-col gap-6">
+  <div>
+    <div class="text-lg leading-relaxed text-gray-800">
+      <%= raw(@highlight.text) %>
+    </div>
+  </div>
+
+  <footer class="border-t pt-4 text-sm text-gray-600">
+    <p>
+      <%= @highlight.book.author %> –
+      <%= if @highlight.book.url do %>
+        <a href={@highlight.book.url} class="underline"><%= @highlight.book.title %></a>
+      <% else %>
+        <%= @highlight.book.title %>
+      <% end %>
+    </p>
+
+    <p class="mt-2">
+      <a
+        href="/highlights"
+        class="inline-block underline text-gray-600 hover:text-blue-800">
+        → See another random highlight
+      </a>
+    </p>
+  </footer>
 </section>
