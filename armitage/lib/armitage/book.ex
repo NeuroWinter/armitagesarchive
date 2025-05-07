@@ -14,7 +14,7 @@ defmodule Armitage.Book do
     field :slug, :string
 
     # This is what lets me associate highlights with books.
-    has_many :highlights, Armitage.Highlight
+    has_many :highlights, Armitage.Highlight, on_delete: :delete_all
 
     timestamps()
   end
