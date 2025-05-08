@@ -107,7 +107,7 @@ defmodule ArmitageWeb.BookController do
               "@type" => "ListItem",
               "position" => 1,
               "name" => "Books",
-              "item" => "https://armitagesarchive.com/books"
+              "item" => url(~p"/books")
             },
             %{
               "@type" => "ListItem",
