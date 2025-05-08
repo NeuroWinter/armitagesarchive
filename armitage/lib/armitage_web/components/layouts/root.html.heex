@@ -21,11 +21,16 @@
     <meta name="twitter:image" content={assigns[:meta_image] || "https://armitagesarchive.com/og-image.png"} />
 
     <meta name="robots" content="index, follow" />
+    <link rel="preconnect" href="https://armitagesarchive.goatcounter.com" crossorigin />
+    <link rel="dns-prefetch" href="https://armitagesarchive.goatcounter.com" />
+    <link rel="preconnect" href="https://analytics.ahrefs.com" crossorigin />
+    <link rel="dns-prefetch" href="https://analytics.ahrefs.com" />
+
     <link rel="canonical" href={assigns[:meta_url] || "https://armitagesarchive.com/"} />
 
     <%= if assigns[:meta_structured_data] do %>
       <script type="application/ld+json">
-        <%= Jason.encode!(assigns[:meta_structured_data]) %>
+        <%= raw(Jason.encode!(assigns[:meta_structured_data])) %>
       </script>
     <% end %>
 

@@ -24,6 +24,8 @@ defmodule ArmitageWeb.Router do
     get "/articles/:slug", ArticleController, :show
     get "/books/:slug", BookController, :show
     get "/readwise", ReadwiseController, :index
+    get "/sitemap.xml", SiteController, :sitemap
+    get "/robots.txt", SiteController, :robots
   end
 
   # Other scopes may use custom stacks.
