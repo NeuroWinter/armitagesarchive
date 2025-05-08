@@ -7,6 +7,10 @@
     <p><a href={@article.url} class="underline" target="_blank">Original article</a></p>
   <% end %>
 
+   <p class="text-sm text-gray-700 mb-4">
+    This page contains highlights I saved while reading <strong><%= @article.title %></strong><%= if @article.author, do: " by #{@article.author}" %>. These quotes were collected using <a href="/readwise" class="underline">Readwise</a>.
+  </p>
+
   <h2>Highlights</h2>
 
   <%= for highlight <- @article.highlights do %>
@@ -15,4 +19,8 @@
     </div>
     <hr />
   <% end %>
+
+  <p class="mt-4 text-sm text-gray-500">
+    Want more like this? <a href="/articles" class="underline">See all articles</a> or <a href="/highlights" class="underline">get a random quote</a>.
+  </p>
 </section>

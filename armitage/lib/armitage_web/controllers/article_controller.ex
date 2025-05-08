@@ -1,7 +1,7 @@
 defmodule ArmitageWeb.ArticleController do
   use ArmitageWeb, :controller
 
-  import ArmitageWeb.MetaHelpers, only: [assign_meta: 2]
+  import ArmitageWeb.MetaHelpers, only: [assign_meta: 2, truncate_description: 1]
   import Armitage.ReadWise, only: [get_all_articles: 0]
   alias ArmitageWeb.Router.Helpers, as: Routes
   alias Armitage.{Repo, Book}
@@ -12,8 +12,22 @@ defmodule ArmitageWeb.ArticleController do
         conn
         |> assign_meta(
           meta_title: "All Articles – Armitage Archive",
-          meta_description: "A collection of saved web articles and their highlights.",
-          meta_url: url(~p"/articles")
+          meta_description: truncate_description("A collection of saved web articles and their highlights."),
+          meta_url: url(~p"/articles"),
+          meta_structured_data: [
+            %{
+              "@context" => "https://schema.org",
+              "@type" => "BreadcrumbList",
+              "itemListElement" => [
+                %{
+                  "@type" => "ListItem",
+                  "position" => 1,
+                  "name" => "Articles",
+                  "item" => url(~p"/articles")
+                }
+              ]
+            }
+          ]
         )
         |> render(:index, articles: articles)
 
@@ -24,6 +38,20 @@ defmodule ArmitageWeb.ArticleController do
           meta_title: "All Articles – Armitage Archive",
           meta_description: "A collection of saved web articles and their highlights.",
           meta_url: url(~p"/articles"),
+          meta_structured_data: [
+            %{
+              "@context" => "https://schema.org",
+              "@type" => "BreadcrumbList",
+              "itemListElement" => [
+                %{
+                  "@type" => "ListItem",
+                  "position" => 1,
+                  "name" => "Articles",
+                  "item" => url(~p"/articles")
+                }
+              ]
+            }
+          ]
         )
         |> render(:index, articles: [])
     end
@@ -32,43 +60,64 @@ defmodule ArmitageWeb.ArticleController do
     article =
       Repo.get_by!(Book, slug: slug)
       |> Repo.preload(:highlights)
-
     conn
     |> assign_meta(
       meta_title: "#{article.title} – Armitage Archive",
-      meta_description: "Highlights and excerpts from the article: #{article.title}.",
+      meta_description: truncate_description("Highlights and excerpts from the article: #{article.title}."),
       meta_url: url(~p"/articles/#{article.slug}"),
-      meta_structured_data: %{
-        "@context" => "https://schema.org",
-        "@type" => "Article",
-        "headline" => article.title,
-        "url" => url(~p"/articles/#{article.slug}"),
-        "mainEntityOfPage" => url(~p"/articles/#{article.slug}"),
-        "datePublished" =>
-          case DateTime.from_naive(article.inserted_at, "Etc/UTC") do
-            {:ok, dt} -> DateTime.to_iso8601(dt)
-            _ -> nil
-          end,
-        "author" =>
-          if article.author && article.author != "Unknown" do
-            %{"@type" => "Person", "name" => article.author}
-          else
-            nil
-          end,
-        "publisher" => %{
-          "@type" => "Organization",
-          "name" => "Armitage Archive",
-          "url" => "https://armitagesarchive.com",
-          "sameAs" => ArmitageWeb.Meta.Social.links(),
-          "logo" => %{
-            "@type" => "ImageObject",
-            "url" => "https://armitagesarchive.com/og-image.png"
+      meta_structured_data: [
+        %{
+          "@context" => "https://schema.org",
+          "@type" => "Article",
+          "headline" => article.title,
+          "url" => url(~p"/articles/#{article.slug}"),
+          "mainEntityOfPage" => url(~p"/articles/#{article.slug}"),
+          "datePublished" =>
+            case DateTime.from_naive(article.inserted_at, "Etc/UTC") do
+              {:ok, dt} -> DateTime.to_iso8601(dt)
+              _ -> nil
+            end,
+          "author" =>
+            if article.author && article.author != "Unknown" do
+              %{"@type" => "Person", "name" => article.author}
+            else
+              nil
+            end,
+          "publisher" => %{
+            "@type" => "Organization",
+            "name" => "Armitage Archive",
+            "url" => "https://armitagesarchive.com",
+            "sameAs" => ArmitageWeb.Meta.Social.links(),
+            "logo" => %{
+              "@type" => "ImageObject",
+              "url" => "https://armitagesarchive.com/og-image.png"
+            }
           }
+        },
+        %{
+          "@context" => "https://schema.org",
+          "@type" => "BreadcrumbList",
+          "itemListElement" => [
+            %{
+              "@type" => "ListItem",
+              "position" => 1,
+              "name" => "Articles",
+              "item" => "https://armitagesarchive.com/articles"
+            },
+            %{
+              "@type" => "ListItem",
+              "position" => 2,
+              "name" => article.title,
+              "item" => url(~p"/articles/#{article.slug}")
+            }
+          ]
         }
-      }
-      |> Enum.reject(fn {_k, v} -> is_nil(v) end)
-      |> Map.new()
+      ]
+      |> Enum.map(fn map ->
+        map |> Enum.reject(fn {_k, v} -> is_nil(v) end) |> Map.new()
+      end)
     )
     |> render(:show, article: article)
+
   end
 end

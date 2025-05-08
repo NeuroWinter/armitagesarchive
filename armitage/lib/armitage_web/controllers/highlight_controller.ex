@@ -1,5 +1,5 @@
 import Armitage.ReadWise, only: [get_random_highlight: 0]
-import ArmitageWeb.MetaHelpers, only: [assign_meta: 2]
+import ArmitageWeb.MetaHelpers, only: [assign_meta: 2, truncate_description: 1]
 
 defmodule ArmitageWeb.HighlightController do
   use ArmitageWeb, :controller
@@ -10,7 +10,7 @@ defmodule ArmitageWeb.HighlightController do
         conn
         |> assign_meta(
           meta_title: "Random Highlight – Armitage Archive",
-          meta_description: "A randomly selected highlight from my reading archive. This was captured using Readwise.",
+          meta_description: truncate_description("A randomly selected highlight from my reading archive. This was captured using Readwise."),
           meta_url: url(~p"/highlights"),
         )
         |> render(:index, highlight: highlight)
