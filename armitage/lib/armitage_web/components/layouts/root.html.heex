@@ -4,6 +4,31 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content={get_csrf_token()} />
+
+    <meta name="description" content={assigns[:meta_description] || "Explore curated highlights from books, blogs, and articles via Readwise."} />
+    <meta name="author" content={assigns[:meta_author] || "NeuroWinter (Alex Manson)"} />
+
+
+    <meta property="og:type" content={assigns[:meta_type] || "website"} />
+    <meta property="og:title" content={assigns[:meta_title] || "Armitage Archive"} />
+    <meta property="og:description" content={assigns[:meta_description] || "Explore curated highlights from books, blogs, and articles via Readwise."} />
+    <meta property="og:url" content={assigns[:meta_url] || "https://armitagesarchive.com/"} />
+    <meta property="og:image" content={assigns[:meta_image] || "https://armitagesarchive.com/og-image.png"} />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={assigns[:meta_title] || "Armitage Archive"} />
+    <meta name="twitter:description" content={assigns[:meta_description] || "Explore curated highlights from books, blogs, and articles via Readwise."} />
+    <meta name="twitter:image" content={assigns[:meta_image] || "https://armitagesarchive.com/og-image.png"} />
+
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href={assigns[:meta_url] || "https://armitagesarchive.com/"} />
+
+    <%= if assigns[:meta_structured_data] do %>
+      <script type="application/ld+json">
+        <%= Jason.encode!(assigns[:meta_structured_data]) %>
+      </script>
+    <% end %>
+
     <.live_title suffix=" · Armitages Archive">
       <%= assigns[:page_title] || "Armitage" %>
     </.live_title>
