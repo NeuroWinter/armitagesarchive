@@ -102,7 +102,7 @@ defmodule ArmitageWeb.ArticleController do
               "@type" => "ListItem",
               "position" => 1,
               "name" => "Articles",
-              "item" => "https://armitagesarchive.com/articles"
+              "item" => url(~p"/articles")
             },
             %{
               "@type" => "ListItem",
