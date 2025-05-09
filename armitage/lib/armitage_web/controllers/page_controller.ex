@@ -6,13 +6,15 @@ defmodule ArmitageWeb.PageController do
 
 
   def home(conn, _params) do
-    recent =
-      Repo.one(
-        from b in Book,
-          where: not is_nil(b.slug) and b.category in ["books", "articles"],
-          order_by: [desc: b.inserted_at],
-          limit: 1
-      )
+      recent =
+        Repo.one(
+          from b in Book,
+            join: h in assoc(b, :highlights),
+            where: not is_nil(b.slug) and b.category in ["books", "articles"],
+            order_by: [desc: h.highlighted_at],
+            limit: 1,
+            preload: [highlights: h]
+        )
 
     conn
     |> assign(:recent, recent)
