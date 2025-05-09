@@ -7,7 +7,7 @@
     I use <a href="/readwise" class="underline">Readwise Reader</a> to collect and save them.
     <%= if @recent do %>
       Here's a <%= @recent.category %> I recently saved:
-      <a href={"/#{@recent.category}s/#{@recent.slug}"} class="underline">
+      <a href={"/#{@recent.category}/#{@recent.slug}"} class="underline">
         <%= @recent.title %>
       </a>.
     <% end %>

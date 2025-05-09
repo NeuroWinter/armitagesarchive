@@ -13,7 +13,7 @@ defmodule Armitage.Release do
     for repo <- repos() do
       case Ecto.Migrator.with_repo(repo, &Ecto.Migrator.run(&1, :up, all: true)) do
       {:ok, _, _} -> :ok
-      {:error, :already_up} -> IO.puts("✅ Migrations already up-to-date")
+      {:error, :already_up} -> IO.puts("Migrations already up-to-date")
       other -> raise "Migration failed: #{inspect(other)}"
     end
     end
@@ -25,6 +25,15 @@ defmodule Armitage.Release do
     sync_readwise_highlights()
     sanitize_highlights()
     backfill_books()
+    link_highlights_to_books()
+    tidy_forwarded_books()
+  end
+
+  def sync_new_data do
+    load_app()
+    ensure_started()
+    Armitage.ReadWise.sync_new_highlights()
+    Armitage.ReadWise.sync_new_books()
     link_highlights_to_books()
     tidy_forwarded_books()
   end
@@ -68,7 +77,7 @@ defmodule Armitage.Release do
       case repo.start_link(pool_size: 1) do
         {:ok, _} -> :ok
         {:error, {:already_started, _}} -> :ok
-        {:error, reason} -> raise "❌ Failed to start repo: #{inspect(reason)}"
+        {:error, reason} -> raise "Failed to start repo: #{inspect(reason)}"
       end
     end
 
