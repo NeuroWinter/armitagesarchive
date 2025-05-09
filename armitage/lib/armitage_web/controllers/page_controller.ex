@@ -11,6 +11,7 @@ defmodule ArmitageWeb.PageController do
           from b in Book,
             join: h in assoc(b, :highlights),
             where: not is_nil(b.slug) and b.category in ["books", "articles"],
+            distinct: true,
             order_by: [desc: h.highlighted_at],
             limit: 1,
             preload: [highlights: h]
