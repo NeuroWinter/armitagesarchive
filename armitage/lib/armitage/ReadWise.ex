@@ -196,6 +196,20 @@ defmodule Armitage.ReadWise do
     sync_all_highlights_paginated(1)
   end
 
+  defp paginate_api(url, page \\ 1, callback) do
+    full_url = "#{url}?page=#{page}&page_size=100"
+
+    case make_request(full_url) do
+      {:ok, %{"results" => results, "next" => next}} ->
+        Enum.each(results, callback)
+        if next, do: paginate_api(url, page + 1, callback), else: :ok
+
+      {:error, reason} ->
+        IO.puts("Error syncing #{url} (page #{page}): #{inspect(reason)}")
+        :ok
+    end
+  end
+
   defp sync_all_highlights_paginated(page) do
     IO.puts("Syncing page #{page}")
     url = "https://readwise.io/api/v2/highlights/?page=#{page}&page_size=100"
@@ -203,7 +217,7 @@ defmodule Armitage.ReadWise do
     case make_request(url) do
       {:ok, %{"results" => results, "next" => next}} ->
         results
-        |> Enum.each(&cache_highlight/1)
+        |> Enum.each(&maybe_insert_highlight/1)
 
         if next do
           sync_all_highlights_paginated(page + 1)
@@ -217,28 +231,84 @@ defmodule Armitage.ReadWise do
     end
   end
 
-  defp cache_highlight(%{"id" => id} = highlight) do
-    case Armitage.Repo.get_by(Armitage.Highlight, readwise_id: id) do
-      nil ->
-        %Armitage.Highlight{}
-        |> Armitage.Highlight.changeset(%{
-          readwise_id: highlight["id"],
-          text: highlight["text"],
-          note: highlight["note"],
-          location: to_string(highlight["location"]),
-          location_type: highlight["location_type"],
-          highlighted_at: parse_optional_datetime(highlight["highlighted_at"]),
-          url: highlight["url"],
-          color: highlight["color"],
-          updated: highlight["updated"],
-          readwise_book_id: highlight["book_id"]
-        })
-        |> Armitage.Repo.insert!()
+  @spec sync_new_highlights() :: :ok
+  def sync_new_highlights do
+    paginate_api("https://readwise.io/api/v2/highlights", 1, &maybe_insert_highlight/1)
+  end
 
-      _ ->
-        :ok
+  defp maybe_insert_highlight(%{"id" => id} = data) do
+    unless Repo.exists?(from h in Highlight, where: h.readwise_id == ^id) do
+      sanitized =
+        %Highlight{text: data["text"]}
+        |> sanitize_highlight_text()
+
+      %Highlight{}
+      |> Highlight.changeset(%{
+        readwise_id: id,
+        text: sanitized.text,
+        note: data["note"],
+        location: to_string(data["location"]),
+        location_type: data["location_type"],
+        highlighted_at: parse_optional_datetime(data["highlighted_at"]),
+        url: data["url"],
+        color: data["color"],
+        updated: data["updated"],
+        readwise_book_id: data["book_id"]
+      })
+      |> Repo.insert()
+      |> case do
+        {:ok, highlight} ->
+          IO.puts("Inserted new highlight - id: #{highlight.id}")
+          {:ok, highlight}
+
+        {:error, reason} ->
+          IO.puts("Failed to insert highlight #{id}: #{inspect(reason)}")
+          {:error, reason}
+      end
     end
   end
+
+  @spec sync_new_books() :: :ok
+  def sync_new_books do
+    paginate_api("https://readwise.io/api/v2/books", 1, &maybe_insert_book/1)
+  end
+
+  # This is a spechal case wehre if there are no highlights, then we dont want to add this book.
+  defp maybe_insert_book(%{"id" => id, "num_highlights" => 0}) do
+    IO.puts("Skipping book #{id} (no highlights)")
+    {:skip, :no_highlights}
+  end
+
+  defp maybe_insert_book(%{"id" => id} = book) do
+    case Repo.get_by(Book, readwise_book_id: id) do
+      nil ->
+        sanitized = sanitize_book_details(book)
+
+        %Book{}
+        |> Book.changeset(%{
+          readwise_book_id: id,
+          title: sanitized["title"],
+          author: sanitized["author"],
+          url: sanitized["source_url"],
+          category: sanitized["category"],
+          source: sanitized["source"]
+        })
+        |> Repo.insert()
+        |> case do
+          {:ok, book} ->
+            IO.puts("Inserted new book - id: #{book.id}")
+            {:ok, book}
+          {:error, reason} ->
+            IO.puts("Failed to insert book #{id}: #{inspect(reason)}")
+            {:error, reason}
+        end
+
+      existing ->
+        {:ok, existing}
+    end
+  end
+
+  defp cache_highlight(highlight), do: maybe_insert_highlight(highlight)
 
   defp parse_optional_datetime(nil), do: nil
   defp parse_optional_datetime(datetime) do
@@ -257,33 +327,25 @@ defmodule Armitage.ReadWise do
     |> distinct(true)
     |> Repo.all()
     |> Enum.each(fn readwise_book_id ->
-      case fetch_book_info_by_id(readwise_book_id) do
-        {:ok, raw_book} ->
-          sanitized_book = sanitize_book_details(raw_book)
+        case fetch_book_info_by_id(readwise_book_id) do
+          {:ok, raw_book} ->
+            case maybe_insert_book(raw_book) do
+              {:ok, book} ->
+                from(h in Highlight, where: h.readwise_book_id == ^readwise_book_id)
+                |> Repo.update_all(set: [book_id: book.id])
 
-          attrs = %{
-            readwise_book_id: readwise_book_id,
-            title: sanitized_book["title"],
-            author: sanitized_book["author"],
-            url: sanitized_book["source_url"],
-            category: sanitized_book["category"],
-            source: sanitized_book["source"]
-          }
+              {:error, changeset} ->
+                IO.puts("Failed to insert book #{readwise_book_id}")
+                IO.inspect(changeset.errors)
+            end
 
-          book =
-            Repo.get_by(Book, readwise_book_id: readwise_book_id) ||
-              Repo.insert!(Book.changeset(%Book{}, attrs))
+          {:error, reason} ->
+            IO.puts("Failed to fetch book #{readwise_book_id}: #{inspect(reason)}")
+        end
+      end)
 
-          from(h in Highlight, where: h.readwise_book_id == ^readwise_book_id)
-          |> Repo.update_all(set: [book_id: book.id])
-
-        {:error, reason} ->
-          IO.puts("Failed to fetch book #{readwise_book_id}: #{inspect(reason)}")
-      end
-    end)
-
-    :ok
-  end
+      :ok
+    end
 
   @spec get_books_by_category(String.t()) :: {:ok, list(Book.t())}
   def get_books_by_category(category) do
