@@ -1,4 +1,7 @@
 defmodule Armitage.ReadWise do
+  @moduledoc """
+  This is the module that holds all the interactions with the Readwise API.
+  """
   require Req
   import Ecto.Query
 
@@ -66,29 +69,6 @@ defmodule Armitage.ReadWise do
     Application.put_env(:armitage, :readwise_access_token, token)
   end
 
-  # Fetch a paginated list of highlights
-  @spec get_highlights() :: {:ok, highlights_response()} | {:error, any()}
-  def get_highlights() do
-    url = "https://readwise.io/api/v2/highlights/"
-    make_request(url)
-  end
-
-  # Fetch the total number of highlights
-  @spec get_total_highlights() :: {:ok, integer()} | {:error, any()}
-  def get_total_highlights() do
-    case get_highlights() do
-      {:ok, %{"count" => count}} -> {:ok, count}
-      {:error, error} -> {:error, error}
-    end
-  end
-
-  # Fetch a specific highlight by its ID
-  @spec get_highlight_by_id(integer()) :: {:ok, highlight()} | {:error, any()}
-  def get_highlight_by_id(id) do
-    url = "https://readwise.io/api/v2/highlights/#{id}/"
-    make_request(url)
-  end
-
   # Fetch a random highlight
   @spec get_random_highlight() :: {:ok, Armitage.Highlight.t()} | {:error, any()}
   def get_random_highlight() do
@@ -100,46 +80,6 @@ defmodule Armitage.ReadWise do
       highlights -> {:ok, Enum.random(highlights)}
     end
   end
-
-
-
-  #@spec get_random_highlight() :: {:ok, highlight()} | {:error, any()}
-  #def get_random_highlight() do
-  #  case get_total_highlights() do
-  #    {:ok, total} when total > 0 ->
-  #      # Calculate the total number of pages (page_size = 1 means total = total_pages)
-  #      random_page = Enum.random(1..total)
-
-  #      fetch_highlight_by_page(random_page)
-  #      # now we need to get the book info for this highlight
-  #      |> case do
-  #        {:ok, %{"book_id" => book_id} = highlight} ->
-  #          case fetch_book_info_by_id(book_id) do
-  #            {:ok, book} ->
-  #              merged_highlight = Map.merge(highlight, sanitize_book_details(book))
-  #              sanitized_highlight = sanitize_highlight_text(merged_highlight)
-  #              {:ok, sanitized_highlight}
-
-  #            {:error, error} ->
-  #              {:error, error}
-  #          end
-
-  #        {:ok, _} ->
-  #          {:error, "Unexpected response structure"}
-
-  #        {:error, error} ->
-  #          {:error, error}
-  #      end
-
-  #    # Now create a new map that has all of the info including the book deatails in in.
-
-  #    {:ok, _} ->
-  #      {:error, "No highlights available"}
-
-  #    {:error, error} ->
-  #      {:error, error}
-  #  end
-  #end
 
   @spec sanitize_book_details(book_details()) :: book_details()
   defp sanitize_book_details(%{"source_url" => url} = highlight) when is_binary(url) do
@@ -173,7 +113,6 @@ defmodule Armitage.ReadWise do
         else
           highlight
         end
-
       _ ->
         highlight
     end
@@ -181,6 +120,9 @@ defmodule Armitage.ReadWise do
 
   defp remove_disallowed_hosts(highlight), do: highlight
 
+  @doc """
+  Sanitize the highlight text by removing unwanted elements and converting markdown links to HTML.
+  """
   @spec sanitize_highlight_text(Armitage.Highlight.t()) :: Armitage.Highlight.t()
   def sanitize_highlight_text(%Armitage.Highlight{text: text} = highlight) when is_binary(text) do
     updated_text =
@@ -221,20 +163,7 @@ defmodule Armitage.ReadWise do
   end
 
   defp remove_private_href_links(html) do
-    # Removes links like <a href="private://...">...</a>
     Regex.replace(~r/<a href="private:\/\/[^"]*">(.*?)<\/a>/, html, "\\1", global: true)
-  end
-
-  @spec fetch_highlight_by_page(integer()) :: {:ok, highlight()} | {:error, any()}
-  defp fetch_highlight_by_page(page) do
-    url = "https://readwise.io/api/v2/highlights/?page=#{page}&page_size=1"
-
-    case make_request(url) do
-      {:ok, %{"results" => [highlight]}} -> {:ok, highlight}
-      {:ok, %{"results" => []}} -> {:error, "No highlights found on the specified page"}
-      {:ok, _} -> {:error, "Unexpected response structure"}
-      {:error, error} -> {:error, error}
-    end
   end
 
   # TODO: change to a real type
@@ -248,7 +177,6 @@ defmodule Armitage.ReadWise do
     end
   end
 
-  # Generic helper for making HTTP requests
   @spec make_request(String.t()) :: {:ok, map()} | {:error, any()}
   defp make_request(url) do
     Req.get(url,
@@ -256,7 +184,7 @@ defmodule Armitage.ReadWise do
     )
     |> case do
       {:ok, %{status: 200, body: body}} -> {:ok, body}
-      {:ok, %{status: status}} -> {:error, "Request failed with status: #{status}"}
+      {:ok, %{status: status, body: body}} -> {:error, %{status: status, body: body}}
       {:error, error} -> {:error, "Request error: #{inspect(error)}"}
     end
   end
@@ -305,7 +233,7 @@ defmodule Armitage.ReadWise do
           updated: highlight["updated"],
           readwise_book_id: highlight["book_id"]
         })
-        |> Armitage.Repo.insert()
+        |> Armitage.Repo.insert!()
 
       _ ->
         :ok
@@ -320,28 +248,6 @@ defmodule Armitage.ReadWise do
     end
   end
 
-  @spec backfill_book_info() :: :ok
-  def backfill_book_info do
-    Armitage.Repo.all(from h in Armitage.Highlight, where: is_nil(h.book_title) or is_nil(h.book_author))
-    |> Enum.each(fn highlight ->
-      case fetch_book_info_by_id(highlight.book_id) do
-        {:ok, book} ->
-          sanitized_book = sanitize_book_details(book)
-          highlight
-          |> Armitage.Highlight.changeset(%{
-            book_title: sanitized_book["title"],
-            book_author: sanitized_book["author"],
-            url: sanitized_book["source_url"]
-          })
-          |> Armitage.Repo.update()
-
-        {:error, reason} ->
-          IO.puts("Failed to fetch book for highlight #{highlight.id}: #{inspect(reason)}")
-      end
-    end)
-
-    :ok
-  end
 
   @spec backfill_books_and_link_highlights() :: :ok
   def backfill_books_and_link_highlights do
@@ -364,11 +270,9 @@ defmodule Armitage.ReadWise do
             source: sanitized_book["source"]
           }
 
-          sanitized = sanitize_book_details(attrs)
-
           book =
             Repo.get_by(Book, readwise_book_id: readwise_book_id) ||
-              Repo.insert!(Book.changeset(%Book{}, sanitized))
+              Repo.insert!(Book.changeset(%Book{}, attrs))
 
           from(h in Highlight, where: h.readwise_book_id == ^readwise_book_id)
           |> Repo.update_all(set: [book_id: book.id])
@@ -381,28 +285,24 @@ defmodule Armitage.ReadWise do
     :ok
   end
 
-
-  @spec get_all_books() :: {:ok, list(book_details())} | {:error, any()}
-  def get_all_books() do
+  @spec get_books_by_category(String.t()) :: {:ok, list(Book.t())}
+  def get_books_by_category(category) do
     books =
       from(b in Book,
-      where: b.category == "books",
-      order_by: b.title
+        where: b.category == ^category,
+        order_by: b.title
       )
       |> Repo.all()
+
     {:ok, books}
   end
 
-  @spec get_all_books() :: {:ok, list(book_details())} | {:error, any()}
-  def get_all_articles() do
-    books =
-      from(b in Book,
-      where: b.category == "articles",
-      order_by: b.title
-      )
-      |> Repo.all()
-    {:ok, books}
-  end
+  @spec get_all_books() :: {:ok, list(Book.t())}
+  def get_all_books, do: get_books_by_category("books")
+
+  @spec get_all_articles() :: {:ok, list(Book.t())}
+  def get_all_articles, do: get_books_by_category("articles")
+
 
   @doc """
   Sanitize the highlights that are stored in the database to remove a bunch of things.
@@ -411,13 +311,13 @@ defmodule Armitage.ReadWise do
     Repo.transaction(fn ->
       Repo.all(Highlight)
       |> Enum.each(fn highlight ->
-        sanitized = sanitize_highlight_text(highlight)  # don't convert to map
+        sanitized = sanitize_highlight_text(highlight)
         IO.puts("Old text: #{highlight.text}")
         IO.puts("New text: #{sanitized.text}")
         if sanitized.text != highlight.text do
           IO.puts("Updating highlight #{highlight.id}")
           highlight
-          |> Ecto.Changeset.change(%{text: sanitized.text})  # use struct access
+          |> Ecto.Changeset.change(%{text: sanitized.text})
           |> Repo.update!()
         end
       end)
