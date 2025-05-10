@@ -168,6 +168,30 @@ defmodule Armitage.Release do
     |> Armitage.Repo.delete_all()
   end
 
+  @doc """
+  Backfills slug on all highlights that don't already have one.
+  """
+  def backfill_highlight_slugs do
+    import Ecto.Query, only: [from: 2]
+    alias Armitage.{Repo, Highlight}
+
+    IO.puts("Backfilling slugs for highlights without one...")
+
+    Repo.transaction(fn ->
+      from(h in Highlight, where: is_nil(h.slug))
+      |> Repo.all()
+      |> Enum.each(fn h ->
+        slug = Highlight.generate_unique_slug(h.text)
+
+        h
+        |> Highlight.changeset(%{slug: slug})
+        |> Repo.update!()
+      end)
+    end)
+
+    IO.puts("Done.")
+  end
+
 
 end
 

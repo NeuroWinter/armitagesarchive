@@ -21,7 +21,12 @@ defmodule ArmitageWeb.Router do
     get "/highlights", HighlightController, :index
     get "/books", BookController, :index
     get "/articles", ArticleController, :index
+    # Wow these need to come first.
+    # So the ordering of this matters. It will match the first one that
+    # mateches I guess.
+    get "/articles/:article_slug/:highlight_slug", ArticleController, :show_from_article
     get "/articles/:slug", ArticleController, :show
+    get "/books/:book_slug/:highlight_slug", BookController, :show_from_book
     get "/books/:slug", BookController, :show
     get "/readwise", ReadwiseController, :index
     get "/sitemap.xml", SiteController, :sitemap

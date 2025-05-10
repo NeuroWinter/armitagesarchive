@@ -124,4 +124,79 @@ defmodule ArmitageWeb.BookController do
     )
     |> render("show.html", book: book)
   end
+
+
+  def show_from_book(conn, %{"book_slug" => book_slug, "highlight_slug" => highlight_slug}) do
+    book =
+      Repo.get_by!(Book, slug: book_slug, category: "books")
+
+    highlight =
+      Repo.get_by!(Ecto.assoc(book, :highlights), slug: highlight_slug)
+
+    conn
+    |> assign_meta(
+      meta_title: "Highlight from #{book.title} – Armitage Archive",
+      meta_description: truncate_description(highlight.text),
+      meta_url: url(~p"/books/#{book.slug}/#{highlight.slug}"),
+      meta_structured_data: [
+        %{
+          "@context" => "https://schema.org",
+          "@type" => "Book",
+          "name" => book.title,
+          "url" => url(~p"/books/#{book.slug}/#{highlight.slug}"),
+          "mainEntityOfPage" => url(~p"/books/#{book.slug}/#{highlight.slug}"),
+          "datePublished" =>
+            case DateTime.from_naive(book.inserted_at, "Etc/UTC") do
+              {:ok, dt} -> DateTime.to_iso8601(dt)
+              _ -> nil
+            end,
+          "author" =>
+            if book.author && book.author != "Unknown" do
+              %{"@type" => "Person", "name" => book.author}
+            else
+              nil
+            end,
+          "publisher" => %{
+            "@type" => "Organization",
+            "name" => "Armitage Archive",
+            "url" => "https://armitagesarchive.com",
+            "sameAs" => ArmitageWeb.Meta.Social.links(),
+            "logo" => %{
+              "@type" => "ImageObject",
+              "url" => "https://armitagesarchive.com/og-image.png"
+            }
+          }
+        },
+        %{
+          "@context" => "https://schema.org",
+          "@type" => "BreadcrumbList",
+          "itemListElement" => [
+            %{
+              "@type" => "ListItem",
+              "position" => 1,
+              "name" => "Books",
+              "item" => url(~p"/books")
+            },
+            %{
+              "@type" => "ListItem",
+              "position" => 2,
+              "name" => book.title,
+              "item" => url(~p"/books/#{book.slug}")
+            },
+            %{
+              "@type" => "ListItem",
+              "position" => 3,
+              "name" => "Highlight",
+              "item" => url(~p"/books/#{book.slug}/#{highlight.slug}")
+            }
+          ]
+        }
+      ]
+      |> Enum.map(fn map ->
+        Enum.reject(map, fn {_k, v} -> is_nil(v) end) |> Map.new()
+      end)
+    )
+    |> render("highlight.html", book: book, highlight: highlight)
+  end
+
 end

@@ -1,0 +1,26 @@
+<section class="prose mx-auto max-w-prose flex flex-col gap-6">
+  <div class="text-lg leading-relaxed text-gray-800">
+    <%= raw(@highlight.text) %>
+  </div>
+
+  <%= if @highlight.note do %>
+    <p class="mt-2 italic text-gray-600">Note: <%= @highlight.note %></p>
+  <% end %>
+
+  <footer class="border-t pt-4 text-sm text-gray-600">
+    <p>
+      <%= @book.author %> –
+      <%= if @book.url do %>
+        <a href={@book.url} class="underline"><%= @book.title %></a>
+      <% else %>
+        <%= @book.title %>
+      <% end %>
+    </p>
+
+    <p class="mt-2">
+      <.link href={~p"/books/#{@book.slug}"} class="underline text-gray-600 hover:text-blue-800">
+        Back to all highlights from this book
+      </.link>
+    </p>
+  </footer>
+</section>

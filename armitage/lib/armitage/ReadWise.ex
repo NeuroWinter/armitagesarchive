@@ -253,7 +253,8 @@ defmodule Armitage.ReadWise do
         url: data["url"],
         color: data["color"],
         updated: data["updated"],
-        readwise_book_id: data["book_id"]
+        readwise_book_id: data["book_id"],
+        slug: Armitage.Highlight.generate_unique_slug(data["text"])
       })
       |> Repo.insert()
       |> case do
