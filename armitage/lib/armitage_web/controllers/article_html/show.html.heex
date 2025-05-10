@@ -17,6 +17,16 @@
     <div class="text-lg leading-relaxed text-gray-800 my-6">
       <%= raw(highlight.text) %>
     </div>
+
+    <p class="text-sm mt-2 text-gray-600">
+      <.link
+        href={~p"/articles/#{@article.slug}/#{highlight.slug}"}
+        class="underline text-gray-600 hover:text-blue-800"
+      >
+        Permalink to this highlight
+      </.link>
+    </p>
+
     <hr />
   <% end %>
 
