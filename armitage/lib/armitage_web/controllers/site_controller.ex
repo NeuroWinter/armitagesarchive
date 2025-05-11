@@ -48,7 +48,8 @@ defmodule ArmitageWeb.SiteController do
       url(conn, ~p"/books"),
       url(conn, ~p"/articles"),
       url(conn, ~p"/readwise"),
-      url(conn, ~p"/highlights")
+      url(conn, ~p"/highlights"),
+      url(conn, ~p"/colophon"),
     ]
 
     all_urls =
