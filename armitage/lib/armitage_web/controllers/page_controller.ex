@@ -61,4 +61,8 @@ defmodule ArmitageWeb.PageController do
     |> render(:home)
   end
 
+  def colophon(conn, _params) do
+    render(conn, :colophon)
+  end
+
 end
