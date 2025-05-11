@@ -29,6 +29,7 @@ defmodule ArmitageWeb.Router do
     get "/books/:book_slug/:highlight_slug", BookController, :show_from_book
     get "/books/:slug", BookController, :show
     get "/readwise", ReadwiseController, :index
+    get "/colophon", PageController, :colophon
     get "/sitemap.xml", SiteController, :sitemap
     get "/robots.txt", SiteController, :robots
   end
