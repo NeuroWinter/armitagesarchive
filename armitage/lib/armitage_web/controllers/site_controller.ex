@@ -4,10 +4,10 @@ defmodule ArmitageWeb.SiteController do
   import Ecto.Query, only: [from: 2]
 
   def sitemap(conn, _params) do
-    books = Repo.all(Book)
+    # Only actual books
     books =
-      Repo.all(Book)
-      |> Enum.filter(fn book -> not is_nil(book.slug) end)
+      from(b in Book, where: b.category == "books" and not is_nil(b.slug))
+      |> Repo.all()
       |> Enum.map(fn book ->
         %{
           loc: url(conn, ~p"/books/#{book.slug}"),
@@ -15,8 +15,10 @@ defmodule ArmitageWeb.SiteController do
         }
       end)
 
+    # Only actual articles
     articles =
-      Repo.all(from b in Book, where: not is_nil(b.url) and not is_nil(b.slug))
+      from(b in Book, where: b.category == "articles" and not is_nil(b.slug) and not is_nil(b.url))
+      |> Repo.all()
       |> Enum.map(fn article ->
         %{
           loc: url(conn, ~p"/articles/#{article.slug}"),
@@ -24,6 +26,7 @@ defmodule ArmitageWeb.SiteController do
         }
       end)
 
+    # Highlights from both books and articles
     highlights =
       from(h in Armitage.Highlight,
         join: b in Armitage.Book,
@@ -40,14 +43,13 @@ defmodule ArmitageWeb.SiteController do
           url(conn, ~p"/articles/#{article_slug}/#{highlight_slug}")
       end)
 
-    static_urls =
-      [
-        url(conn, ~p"/"),
-        url(conn, ~p"/books"),
-        url(conn, ~p"/articles"),
-        url(conn, ~p"/readwise"),
-        url(conn, ~p"/highlights")
-      ]
+    static_urls = [
+      url(conn, ~p"/"),
+      url(conn, ~p"/books"),
+      url(conn, ~p"/articles"),
+      url(conn, ~p"/readwise"),
+      url(conn, ~p"/highlights")
+    ]
 
     all_urls =
       Enum.map(books, & &1.loc) ++
@@ -61,6 +63,7 @@ defmodule ArmitageWeb.SiteController do
     |> put_resp_content_type("application/xml")
     |> send_resp(200, xml)
   end
+
 
   def robots(conn, _params) do
     conn
