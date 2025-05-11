@@ -673,4 +673,12 @@ defmodule ArmitageWeb.CoreComponents do
   def translate_errors(errors, field) when is_list(errors) do
     for {^field, {msg, opts}} <- errors, do: translate_error({msg, opts})
   end
+
+  @doc """
+  Class used for links.
+  """
+  def mono_link_class do
+    "font-mono [font-weight:450] text-sm underline tracking-wide hover:text-gray-600"
+  end
+
 end

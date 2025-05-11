@@ -3,6 +3,7 @@ defmodule ArmitageWeb.ArticleController do
 
   import ArmitageWeb.MetaHelpers, only: [assign_meta: 2, truncate_description: 1]
   import Armitage.ReadWise, only: [get_all_articles: 0]
+  import ArmitageWeb.CoreComponents
   alias ArmitageWeb.Router.Helpers, as: Routes
   alias Armitage.{Repo, Book}
 

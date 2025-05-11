@@ -3,6 +3,7 @@ defmodule ArmitageWeb.PageController do
   import ArmitageWeb.MetaHelpers, only: [assign_meta: 2, truncate_description: 1]
   import Ecto.Query
   alias Armitage.{Repo, Book}
+  import ArmitageWeb.CoreComponents
 
 
   def home(conn, _params) do
