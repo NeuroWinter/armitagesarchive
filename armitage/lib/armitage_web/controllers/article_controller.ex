@@ -5,7 +5,8 @@ defmodule ArmitageWeb.ArticleController do
   import Armitage.ReadWise, only: [get_all_articles: 0]
   import ArmitageWeb.CoreComponents
   alias ArmitageWeb.Router.Helpers, as: Routes
-  alias Armitage.{Repo, Book}
+  alias Armitage.{Repo, Book, Highlight}
+  alias ArmitageWeb.NotFoundError
 
   def index(conn, _params) do
     case get_all_articles() do
@@ -60,8 +61,11 @@ defmodule ArmitageWeb.ArticleController do
 
   def show(conn, %{"slug" => slug}) do
     article =
-      Repo.get_by!(Book, slug: slug)
-      |> Repo.preload(:highlights)
+      Repo.get_by(Book, slug: slug, category: "articles") ||
+        raise NotFoundError, message: "Article not found"
+
+    article = Repo.preload(article, :highlights)
+
     conn
     |> assign_meta(
       meta_title: "#{article.title} – Armitage Archive",
@@ -125,10 +129,12 @@ defmodule ArmitageWeb.ArticleController do
 
   def show_from_article(conn, %{"article_slug" => article_slug, "highlight_slug" => highlight_slug}) do
      article =
-      Repo.get_by!(Book, slug: article_slug, category: "articles")
+      Repo.get_by(Book, slug: article_slug, category: "articles") ||
+        raise NotFoundError, message: "Article not found"
 
     highlight =
-      Repo.get_by!(Ecto.assoc(article, :highlights), slug: highlight_slug)
+      Repo.get_by(Ecto.assoc(article, :highlights), slug: highlight_slug) ||
+        raise NotFoundError, message: "Highlight not found"
 
     conn
     |> assign_meta(

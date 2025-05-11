@@ -175,6 +175,9 @@ defmodule Armitage.Release do
     import Ecto.Query, only: [from: 2]
     alias Armitage.{Repo, Highlight}
 
+    load_app()
+    ensure_started()
+
     IO.puts("Backfilling slugs for highlights without one...")
 
     Repo.transaction(fn ->

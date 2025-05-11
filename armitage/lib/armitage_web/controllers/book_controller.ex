@@ -5,7 +5,8 @@ import ArmitageWeb.CoreComponents
 
 defmodule ArmitageWeb.BookController do
   use ArmitageWeb, :controller
-  alias Armitage.{Repo, Book}
+  alias Armitage.{Repo, Book, Highlight}
+  alias ArmitageWeb.NotFoundError
 
   def index(conn, _params) do
     # Lets change this to use the readwise module.
@@ -61,8 +62,10 @@ defmodule ArmitageWeb.BookController do
 
   def show(conn, %{"slug" => slug}) do
     book =
-      Repo.get_by!(Book, slug: slug)
-      |> Repo.preload(:highlights)
+      Repo.get_by(Book, slug: slug, category: "books") ||
+        raise NotFoundError, message: "Book not found"
+
+    book = Repo.preload(book, :highlights)
 
     conn
     |> assign_meta(
@@ -129,10 +132,12 @@ defmodule ArmitageWeb.BookController do
 
   def show_from_book(conn, %{"book_slug" => book_slug, "highlight_slug" => highlight_slug}) do
     book =
-      Repo.get_by!(Book, slug: book_slug, category: "books")
+      Repo.get_by(Book, slug: book_slug, category: "books") ||
+        raise NotFoundError, message: "Book not found"
 
     highlight =
-      Repo.get_by!(Ecto.assoc(book, :highlights), slug: highlight_slug)
+      Repo.get_by(Highlight, slug: highlight_slug, book_id: book.id) ||
+        raise NotFoundError, message: "Highlight not found"
 
     conn
     |> assign_meta(
