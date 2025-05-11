@@ -1,5 +1,6 @@
 import Armitage.ReadWise, only: [get_all_books: 0]
 import ArmitageWeb.MetaHelpers, only: [assign_meta: 2, truncate_description: 1]
+import ArmitageWeb.CoreComponents
 
 
 defmodule ArmitageWeb.BookController do

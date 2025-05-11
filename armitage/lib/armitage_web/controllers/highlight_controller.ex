@@ -1,5 +1,6 @@
 import Armitage.ReadWise, only: [get_random_highlight: 0]
 import ArmitageWeb.MetaHelpers, only: [assign_meta: 2, truncate_description: 1]
+import ArmitageWeb.CoreComponents
 
 defmodule ArmitageWeb.HighlightController do
   use ArmitageWeb, :controller

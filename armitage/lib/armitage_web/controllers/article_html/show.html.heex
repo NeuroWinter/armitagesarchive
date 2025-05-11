@@ -1,17 +1,27 @@
-<section class="prose">
-  <h1><%= @article.title %></h1>
+<section class="prose font-sans text-base leading-relaxed text-gray-900">
+  <h1 class="text-xl font-mono [font-weight:450] tracking-wide"><%= @article.title %></h1>
 
-  <p><%= if @article.author, do: "by #{@article.author}" %></p>
-
-  <%= if @article.url do %>
-    <p><a href={@article.url} class="underline" target="_blank">Original article</a></p>
+  <%= if @article.author do %>
+    <p class="text-sm font-mono [font-weight:450] text-gray-600 tracking-wide">
+      by <%= @article.author %>
+    </p>
   <% end %>
 
-   <p class="text-sm text-gray-700 mb-4">
-    This page contains highlights I saved while reading <strong><%= @article.title %></strong><%= if @article.author, do: " by #{@article.author}" %>. These quotes were collected using <a href="/readwise" class="underline">Readwise</a>.
+  <%= if @article.url do %>
+    <p class="text-sm">
+      <a href={@article.url} class={mono_link_class()} target="_blank">Original article</a>
+    </p>
+  <% end %>
+
+  <p class="text-sm text-gray-700 mb-4 leading-relaxed">
+    This page contains highlights I saved while reading
+    <strong><%= @article.title %></strong>
+    <%= if @article.author, do: " by #{@article.author}" %>.
+    These quotes were collected using
+    <a href="/readwise" class={mono_link_class()}>Readwise</a>.
   </p>
 
-  <h2>Highlights</h2>
+  <h2 class="font-mono [font-weight:450] text-lg tracking-wide">Highlights</h2>
 
   <%= for highlight <- @article.highlights do %>
     <div class="text-lg leading-relaxed text-gray-800 my-6">
@@ -21,7 +31,7 @@
     <p class="text-sm mt-2 text-gray-600">
       <.link
         href={~p"/articles/#{@article.slug}/#{highlight.slug}"}
-        class="underline text-gray-600 hover:text-blue-800"
+        class={mono_link_class()}
       >
         Permalink to this highlight
       </.link>
@@ -31,6 +41,9 @@
   <% end %>
 
   <p class="mt-4 text-sm text-gray-500">
-    Want more like this? <a href="/articles" class="underline">See all articles</a> or <a href="/highlights" class="underline">get a random quote</a>.
+    Want more like this?
+    <a href="/articles" class={mono_link_class()}>See all articles</a>
+    or
+    <a href="/highlights" class={mono_link_class()}>get a random quote</a>.
   </p>
 </section>

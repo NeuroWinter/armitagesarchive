@@ -1,6 +1,7 @@
 defmodule ArmitageWeb.ReadwiseController do
   use ArmitageWeb, :controller
   import ArmitageWeb.MetaHelpers, only: [assign_meta: 2, truncate_description: 1]
+  import ArmitageWeb.CoreComponents
 
 
   def index(conn, _params) do

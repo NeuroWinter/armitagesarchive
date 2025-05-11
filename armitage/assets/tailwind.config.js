@@ -11,19 +11,31 @@ module.exports = {
     "../lib/armitage_web.ex",
     "../lib/armitage_web/**/*.*ex"
   ],
+  safelist: [
+    '[font-weight:450]'
+  ],
   theme: {
     extend: {
       colors: {
         brand: "#FD4F00",
       },
+      maxWidth: {
+        prose: '79ch',
+      },
       fontFamily: {
         // sans: ['ui-sans-serif', 'system-ui', 'sans-serif'],
-        sans: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
-        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+        //sans: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+        //mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+        sans: ['"Untitled Sans"', 'sans-serif'],
+        mono: ['"Berkeley Mono"', 'monospace']
       },
       typography: {
         DEFAULT: {
           css: {
+            '*, ::before, ::after': {
+              WebkitFontSmoothing: 'antialiased',
+              MozOsxFontSmoothing: 'grayscale',
+            },
             color: '#000',
             a: {
               color: '#000',
@@ -33,7 +45,12 @@ module.exports = {
               },
             },
             h1: {
-              fontSize: '2rem',
+              fontSize: '1.75rem',
+              fontWeight: '700',
+              marginBottom: '1rem',
+            },
+            h2: {
+              fontSize: '1.25rem',
               fontWeight: '700',
               marginBottom: '1rem',
             },
@@ -46,6 +63,7 @@ module.exports = {
     },
   },
   plugins: [
+    // TOOD: add component that will be used for mono-links
     require("@tailwindcss/forms"),
     require('@tailwindcss/typography'),
     // Allows prefixing tailwind classes with LiveView classes to add rules

@@ -1,37 +1,31 @@
-<section class="prose">
+<section class="prose font-sans text-base leading-relaxed text-gray-900">
   <p class="mt-4">
-      This is a small site I built to share highlights from <a href="/books" class="underline">books</a>, <a href="/articles" class="underline">articles</a>, emails, and other corners of the internet.
+      This is a small site I built to share highlights from <a href="/books" class={mono_link_class()}>books</a>, <a href="/articles" class={mono_link_class()}>articles</a>, emails, and other corners of the internet.
   </p>
 
   <p class="mt-2">
-    I use <a href="/readwise" class="underline">Readwise Reader</a> to collect and save them.
+        I use <a href="/readwise" class={mono_link_class()}>Readwise Reader</a> to collect and save them.
     <%= if @recent do %>
-      Here's a <%= @recent.category %> I recently saved:
-      <a href={"/#{@recent.category}/#{@recent.slug}"} class="underline">
+      Here's one from <%= @recent.category %> I recently saved:
+      <a href={"/#{@recent.category}/#{@recent.slug}"} class={mono_link_class()}>
         <%= @recent.title %>
       </a>.
     <% end %>
   </p>
 
   <p class="mt-4">
-    <a href="/highlights" class="underline hover:text-gray-600">
-      Click here to view a random highlight.
-    </a>
-  </p>
-  <p class="mt-4">
-    <a href="/books" class="underline hover:text-gray-600">
-      Browse the books my highlights come from
-    </a>
-  </p>
-  <p class="mt-4">
-    <a href="/articles" class="underline hover:text-gray-600">
-      Browse the articles my highlights come from
-    </a>
+    Click <a href="/highlights" class={mono_link_class()}>here</a> to view a random highlight.
   </p>
 
   <p class="mt-4">
-    <a href="/readwise" class="underline hover:text-gray-600">
-      Want to know how this site works? Here's a bit about how I use Readwise.
-    </a>
+    Browse the <a href="/books" class={mono_link_class()}>books</a> my highlights come from.
+  </p>
+
+  <p class="mt-4">
+    Browse the <a href="/articles" class={mono_link_class()}>articles</a> my highlights come from.
+  </p>
+
+  <p class="mt-4">
+    Want to know how this site works? Here's a bit about how I use <a href="/readwise" class={mono_link_class()}>Readwise</a>.
   </p>
 </section>

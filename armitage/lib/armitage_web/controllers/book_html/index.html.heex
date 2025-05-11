@@ -1,18 +1,26 @@
-<section class="prose">
-  <h2>List of books with highlights</h2>
+<section class="prose font-sans text-base leading-relaxed text-gray-900">
+  <h2 class="text-xl font-mono [font-weight:450] tracking-wide">List of books with highlights</h2>
 
-  <ul>
+  <ul class="space-y-4">
     <%= for book <- @books do %>
       <li>
         <strong>
-          <.link navigate={~p"/books/#{book.slug}"} class="underline">
+          <.link navigate={~p"/books/#{book.slug}"} class={mono_link_class()}>
             <%= book.title %>
           </.link>
         </strong>
-        <%= if book.author, do: " by #{book.author}" %>
+
+        <%= if book.author do %>
+          <span class="text-sm font-mono text-gray-600 tracking-wide [font-weight:450]">
+            by <%= book.author %>
+          </span>
+        <% end %>
 
         <%= if book.url do %>
-          – <a href={book.url} class="underline" target="_blank">source</a>
+          <span class="text-sm font-mono text-gray-600 tracking-wide [font-weight:450]">
+            –
+            <a href={book.url} class={mono_link_class()} target="_blank">source</a>
+          </span>
         <% end %>
       </li>
     <% end %>
