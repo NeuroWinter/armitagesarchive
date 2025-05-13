@@ -141,6 +141,7 @@ defmodule ArmitageWeb.ArticleController do
       meta_title: "Highlight from #{article.title} – Armitage Archive",
       meta_description: truncate_description(highlight.text),
       meta_url: url(~p"/articles/#{article.slug}/#{highlight.slug}"),
+      meta_image: ArmitageWeb.Endpoint.url() <> "/og/quotes/png/#{highlight.slug}.png",
       meta_structured_data: [
         %{
           "@context" => "https://schema.org",

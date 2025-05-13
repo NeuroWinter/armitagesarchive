@@ -17,7 +17,7 @@ defmodule ArmitageWeb do
   those modules here.
   """
 
-  def static_paths, do: ~w(assets fonts images favicon.ico robots.txt)
+  def static_paths, do: ~w(assets fonts images og favicon.ico robots.txt)
 
   def router do
     quote do
@@ -109,5 +109,32 @@ defmodule ArmitageWeb do
   """
   defmacro __using__(which) when is_atom(which) do
     apply(__MODULE__, which, [])
+  end
+
+  def view do
+    quote do
+      use Phoenix.View,
+        root: "lib/armitage_web/templates",
+        namespace: ArmitageWeb
+
+      # Import convenience functions from controllers
+      import Phoenix.Controller,
+        only: [get_flash: 1, get_flash: 2, view_module: 1, view_template: 1]
+
+      # Include shared imports and aliases for views
+      unquote(view_helpers())
+    end
+  end
+
+  defp view_helpers do
+    quote do
+      # Use all HTML functionality (forms, tags, etc)
+      use Phoenix.HTML
+
+      import Phoenix.View
+      import ArmitageWeb.ErrorHelpers
+      import ArmitageWeb.Gettext
+      alias ArmitageWeb.Router.Helpers, as: Routes
+    end
   end
 end

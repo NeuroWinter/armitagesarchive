@@ -62,6 +62,11 @@ config :logger, :console,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
+# We need to add this to ensure the app knows how to render .heex files
+config :phoenix_template, :engines,
+  heex: Phoenix.Template.HEExEngine,
+  eex: EEx.SmartEngine
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"
