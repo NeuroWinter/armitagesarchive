@@ -196,5 +196,26 @@ defmodule Armitage.Release do
   end
 
 
+  @doc """
+  Generates SVG images for all highlights that have a slug and are associated with a book.
+  """
+  def generate_highlight_images do
+    load_app()
+    ensure_started()
+
+    highlights =
+      from(h in Armitage.Highlight,
+        join: b in assoc(h, :book),
+        where: not is_nil(h.slug) and not is_nil(b.slug),
+        preload: [book: b]
+      )
+      |> Repo.all()
+
+    Enum.each(highlights, fn highlight ->
+      Armitage.HighlightCard.generate_svg(highlight)
+    end)
+    IO.puts("All highlight SVGs generated.")
+  end
+
 end
 

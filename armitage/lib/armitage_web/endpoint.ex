@@ -22,7 +22,8 @@ defmodule ArmitageWeb.Endpoint do
   plug Plug.Static,
     at: "/",
     from: :armitage,
-    gzip: false,
+    gzip: Application.compile_env(:armitage, :env) == :prod,
+    cache_control_for_etags: "public, max-age=31536000",
     only: ArmitageWeb.static_paths()
 
   # Code reloading can be explicitly enabled under the
