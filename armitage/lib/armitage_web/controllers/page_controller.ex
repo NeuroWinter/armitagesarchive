@@ -73,7 +73,7 @@ defmodule ArmitageWeb.PageController do
             "@context" => "https://schema.org",
             "@type" => "WebPage",
             "name" => "Armitage Archive - Colophon",
-            "url" => "https://armitagesarchive.com/colophon",
+            "url" => url(~p"/colophon"),
             "description" => "Site design notes, font choices, tech stack, and project rationale behind Armitage Archive, a digital quote / highlight library built with Elixir.",
             "inLanguage" => "en",
             "about" => "Quotes and highlights library powered by Elixir and Phoenix Framework"
