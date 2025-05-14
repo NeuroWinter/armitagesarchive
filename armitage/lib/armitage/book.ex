@@ -12,6 +12,7 @@ defmodule Armitage.Book do
     field :category, :string
     field :source, :string
     field :slug, :string
+    field :bookshop_url, :string
 
     # This is what lets me associate highlights with books.
     has_many :highlights, Armitage.Highlight, on_delete: :delete_all

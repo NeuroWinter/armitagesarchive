@@ -9,13 +9,12 @@
     </p>
   <% end %>
 
-  <%= if @book.url do %>
-    <p class="text-sm">
-      <a href={@book.url} class={mono_link_class()} target="_blank">
-        Buy or read the book
-      </a>
-    </p>
+  <%= if @book.bookshop_url do %>
+    <small class="text-sm mt-2 text-muted-foreground">
+      Buy a print copy from <a href={@book.bookshop_url} class={mono_link_class()} target="_blank" rel="noopener">Bookshop.org</a> (affiliate)
+    </small>
   <% end %>
+
 
   <p class="text-sm text-gray-700 mb-4 leading-relaxed">
     This page contains highlights I saved while reading
