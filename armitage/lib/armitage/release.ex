@@ -244,6 +244,8 @@ defmodule Armitage.Release do
         "https://bookshop.org/a/113638/9780593719978",
       "build-tony-fadell" =>
          "https://bookshop.org/a/113638/9780063046061",
+      "the-phoenix-project" =>
+          "https://bookshop.org/a/113638/9781950508945",
       # Add more here
     }
 
