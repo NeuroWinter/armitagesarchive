@@ -32,6 +32,7 @@ defmodule ArmitageWeb.Router do
     get "/colophon", PageController, :colophon
     get "/sitemap.xml", SiteController, :sitemap
     get "/robots.txt", SiteController, :robots
+    get "/secure-fonts/:file", FontController, :serve
   end
 
   # Other scopes may use custom stacks.
