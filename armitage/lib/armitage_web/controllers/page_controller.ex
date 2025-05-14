@@ -62,7 +62,46 @@ defmodule ArmitageWeb.PageController do
   end
 
   def colophon(conn, _params) do
-    render(conn, :colophon)
+    conn
+      |> assign_meta(
+        meta_title: "Armitage Archive – Colophon",
+        meta_description:
+          truncate_description("Site design notes, font choices, tech stack, and project rationale behind Armitage Archive, a digital quote / highlight library built with Elixir."),
+        meta_url: url(~p"/colophon"),
+        meta_structured_data: [
+          %{
+            "@context" => "https://schema.org",
+            "@type" => "WebPage",
+            "name" => "Armitage Archive - Colophon",
+            "url" => "https://armitagesarchive.com/colophon",
+            "description" => "Site design notes, font choices, tech stack, and project rationale behind Armitage Archive, a digital quote / highlight library built with Elixir.",
+            "inLanguage" => "en",
+            "about" => "Quotes and highlights library powered by Elixir and Phoenix Framework"
+          },
+          %{
+            "@context" => "https://schema.org",
+            "@type" => "BreadcrumbList",
+            "itemListElement" => [
+              %{
+                "@type" => "ListItem",
+                "position" => 1,
+                "name" => "Home",
+                "item" => url(~p"/")
+              },
+              %{
+                "@type" => "ListItem",
+                "position" => 2,
+                "name" => "Colophon",
+                "item" => url(~p"/colophon")
+              }
+            ]
+          }
+        ]
+        |> Enum.map(fn map ->
+          map |> Enum.reject(fn {_k, v} -> is_nil(v) end) |> Map.new()
+        end)
+      )
+      |> render(:colophon)
   end
 
 end
