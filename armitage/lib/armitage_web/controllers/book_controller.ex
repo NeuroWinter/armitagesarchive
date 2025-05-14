@@ -144,6 +144,7 @@ defmodule ArmitageWeb.BookController do
       meta_title: "Highlight from #{book.title} – Armitage Archive",
       meta_description: truncate_description(highlight.text),
       meta_url: url(~p"/books/#{book.slug}/#{highlight.slug}"),
+      meta_image: ArmitageWeb.Endpoint.url() <> "/og/quotes/png/#{highlight.slug}.png",
       meta_structured_data: [
         %{
           "@context" => "https://schema.org",
