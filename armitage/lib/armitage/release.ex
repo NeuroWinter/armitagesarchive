@@ -217,5 +217,47 @@ defmodule Armitage.Release do
     IO.puts("All highlight SVGs generated.")
   end
 
+
+  @doc """
+  Seeds the books with bookshop affilate links.
+
+  To add new ones just add the slug, and the bookshop url to the books map.
+  """
+  @spec seed_bookshop_urls :: :ok
+  def seed_bookshop_urls do
+    load_app()
+    ensure_started()
+    books = %{
+      "a-hackers-mind-bruce-schneier" =>
+        "https://bookshop.org/a/113638/9781324074533",
+      "how-to-take-smart-notes-one-simple-technique-to-boost-writing-learning-and-thinking-sonke-ahrens" =>
+        "https://bookshop.org/a/113638/9783982438801",
+      "mythical-man-month-the-essays-on-software-engineering-frederick-p-brooks" =>
+        "https://bookshop.org/a/113638/9780201835953",
+      "read-write-own-chris-dixon" =>
+        "https://bookshop.org/a/113638/9780593731390",
+      "the-clean-coder-a-code-of-conduct-for-professional-programmers-robert-c-martin" =>
+        "https://bookshop.org/a/113638/9780137081073",
+      "the-first-90-days-watkins-michael-d" =>
+        "https://bookshop.org/a/113638/9781422188613",
+      "the-great-mental-models-general-thinking-concepts-shane-parrish" =>
+        "https://bookshop.org/a/113638/9780593719978",
+      # Add more here
+    }
+
+    for {slug, url} <- books do
+      case Armitage.Repo.get_by(Armitage.Book, slug: slug) do
+        nil ->
+          IO.warn("Book not found: #{slug}")
+
+        book ->
+          changeset = Ecto.Changeset.change(book, bookshop_url: url)
+          Armitage.Repo.update!(changeset)
+      end
+    end
+
+    IO.puts("Bookshop URLs seeded.")
+  end
+
 end
 
