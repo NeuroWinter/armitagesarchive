@@ -242,6 +242,8 @@ defmodule Armitage.Release do
         "https://bookshop.org/a/113638/9781422188613",
       "the-great-mental-models-general-thinking-concepts-shane-parrish" =>
         "https://bookshop.org/a/113638/9780593719978",
+      "build-tony-fadell" =>
+         "https://bookshop.org/a/113638/9780063046061",
       # Add more here
     }
 
