@@ -34,8 +34,8 @@
       </script>
     <% end %>
 
-    <.live_title suffix=" · Armitages Archive">
-      <%= assigns[:page_title] || "Armitage" %>
+    <.live_title suffix=" · Armitage Archive">
+      <%= @meta_title || @page_title || "Armitage Archive" %>
     </.live_title>
     <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
     <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}></script>

@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-FONT_DIR="priv/static/fonts"
+FONT_DIR="/tmp/resvg_fonts/"
 SVG_DIR="priv/static/og/quotes"
 OUT_DIR="${SVG_DIR}/png"
 
