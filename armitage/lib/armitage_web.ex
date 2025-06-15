@@ -17,7 +17,7 @@ defmodule ArmitageWeb do
   those modules here.
   """
 
-  def static_paths, do: ~w(assets images og favicon.ico robots.txt)
+  def static_paths, do: ~w(assets images og favicon.ico robots.txt 52249f43f91e4694967e9ca0e9112a57.txt)
 
   def router do
     quote do

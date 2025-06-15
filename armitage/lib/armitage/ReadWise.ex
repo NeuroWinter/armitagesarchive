@@ -8,6 +8,7 @@ defmodule Armitage.ReadWise do
   alias Armitage.Book
   alias Armitage.Repo
   alias Armitage.Highlight
+  alias Armitage.TextUtils
 
   # Type specifications for clarity and maintainability
   @type tag :: %{
@@ -127,44 +128,16 @@ defmodule Armitage.ReadWise do
   def sanitize_highlight_text(%Armitage.Highlight{text: text} = highlight) when is_binary(text) do
     updated_text =
       text
-      |> normalize_quotes()
-      |> remove_bad_references()
-      |> convert_markdown_links()
-      |> remove_internal_links()
-      |> remove_private_href_links()
+      |> TextUtils.normalize_quotes()
+      |> TextUtils.remove_bad_references()
+      |> TextUtils.convert_markdown_links()
+      |> TextUtils.remove_internal_links()
+      |> TextUtils.remove_private_href_links()
 
     %Armitage.Highlight{highlight | text: updated_text}
   end
 
   def sanitize_highlight_text(highlight), do: highlight
-
-  # This is to get rid of those annoying links to foot notes and stuff.
-  defp remove_internal_links(html) do
-    # Remove links like <a href="#rlink123">...</a>
-    Regex.replace(~r/<a href="#rlink\d+">(.*?)<\/a>/, html, "\\1", global: true)
-  end
-
-  defp normalize_quotes(text) do
-    text
-    |> String.replace(~r/[“”]/u, "\"")
-    |> String.replace(~r/[‘’]/u, "'")
-  end
-
-
-  @spec convert_markdown_links(String.t()) :: String.t()
-  defp convert_markdown_links(text) do
-    Earmark.as_html!(text)
-  end
-
-  @spec remove_bad_references(String.t()) :: String.t()
-  defp remove_bad_references(text) do
-    regex = ~r/\[\d\]\((private:\/\/|https?:\/\/).*?\)/
-    Regex.replace(regex, text, "", global: true)
-  end
-
-  defp remove_private_href_links(html) do
-    Regex.replace(~r/<a href="private:\/\/[^"]*">(.*?)<\/a>/, html, "\\1", global: true)
-  end
 
   # TODO: change to a real type
   @spec fetch_book_info_by_id(integer()) :: {:ok, book_details()} | {:error, any()}
@@ -188,8 +161,6 @@ defmodule Armitage.ReadWise do
       {:error, error} -> {:error, "Request error: #{inspect(error)}"}
     end
   end
-
-
 
   @spec sync_all_highlights() :: :ok
   def sync_all_highlights do
