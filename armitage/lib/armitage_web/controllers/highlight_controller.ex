@@ -10,7 +10,7 @@ defmodule ArmitageWeb.HighlightController do
       {:ok, highlight} ->
         conn
         |> assign_meta(
-          meta_title: "Random Highlight – Armitage Archive",
+          meta_title: "Random Highlight",
           meta_description: truncate_description("A randomly selected highlight from my reading archive. This was captured using Readwise."),
           meta_url: url(~p"/highlights"),
         )

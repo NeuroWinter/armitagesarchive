@@ -34,8 +34,14 @@
       </script>
     <% end %>
 
-    <.live_title suffix=" · Armitage Archive">
-      <%= @meta_title || @page_title || "Armitage Archive" %>
+    <.live_title>
+      <%= cond do
+        @meta_title && String.length(@meta_title) <= 50 -> "#{@meta_title} · Armitage Archive"
+        @meta_title -> @meta_title
+        @page_title && String.length(@page_title) <= 50 -> "#{@page_title} · Armitage Archive"
+        @page_title -> @page_title
+        true -> "Armitage Archive"
+      end %>
     </.live_title>
     <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
     <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}></script>

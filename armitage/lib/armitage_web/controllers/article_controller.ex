@@ -13,7 +13,7 @@ defmodule ArmitageWeb.ArticleController do
       {:ok, articles} ->
         conn
         |> assign_meta(
-          meta_title: "All Articles – Armitage Archive",
+          meta_title: "All Articles",
           meta_description: truncate_description("A collection of saved web articles and their highlights."),
           meta_url: url(~p"/articles"),
           meta_structured_data: [
@@ -37,7 +37,7 @@ defmodule ArmitageWeb.ArticleController do
         conn
         |> put_flash(:error, "Failed to fetch articles: #{inspect(error)}")
         |> assign_meta(
-          meta_title: "All Articles – Armitage Archive",
+          meta_title: "All Articles",
           meta_description: "A collection of saved web articles and their highlights.",
           meta_url: url(~p"/articles"),
           meta_structured_data: [
@@ -68,7 +68,7 @@ defmodule ArmitageWeb.ArticleController do
 
     conn
     |> assign_meta(
-      meta_title: "#{article.title} – Armitage Archive",
+      meta_title: "#{article.title}",
       meta_description: truncate_description("Highlights and excerpts from the article: #{article.title}."),
       meta_url: url(~p"/articles/#{article.slug}"),
       meta_structured_data: [
@@ -138,7 +138,7 @@ defmodule ArmitageWeb.ArticleController do
 
     conn
     |> assign_meta(
-      meta_title: "Highlight from #{article.title} – Armitage Archive",
+      meta_title: "Highlight from #{article.title}",
       meta_description: truncate_description(highlight.text),
       meta_url: url(~p"/articles/#{article.slug}/#{highlight.slug}"),
       meta_image: ArmitageWeb.Endpoint.url() <> "/og/quotes/png/#{highlight.slug}.png",

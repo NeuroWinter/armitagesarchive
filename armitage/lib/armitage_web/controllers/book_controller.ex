@@ -14,7 +14,7 @@ defmodule ArmitageWeb.BookController do
       {:ok, books} ->
         conn
         |> assign_meta(
-          meta_title: "All Books – Armitage Archive",
+          meta_title: "All Books",
           meta_description: truncate_description("A collection of books I've highlighted using Readwise."),
           meta_url: url(~p"/books"),
           meta_structured_data: [
@@ -38,7 +38,7 @@ defmodule ArmitageWeb.BookController do
         conn
         |> put_flash(:error, "Failed to fetch books: #{inspect(error)}")
         |> assign_meta(
-          meta_title: "All Books – Armitage Archive",
+          meta_title: "All Books",
           meta_description: "A collection of books I've highlighted using Readwise.",
           meta_url: url(~p"/books"),
           meta_structured_data: [
@@ -69,7 +69,7 @@ defmodule ArmitageWeb.BookController do
 
     conn
     |> assign_meta(
-      meta_title: "#{book.title} by #{book.author} – Armitage Archive",
+      meta_title: "#{book.title} by #{book.author}",
       meta_description: truncate_description(
         "Quotes and highlights from #{book.title} by #{book.author}, saved and highlighted for future reference using Readwise."
       ),
@@ -141,7 +141,7 @@ defmodule ArmitageWeb.BookController do
 
     conn
     |> assign_meta(
-      meta_title: "Highlight from #{book.title} – Armitage Archive",
+      meta_title: "Highlight from #{book.title}",
       meta_description: truncate_description(highlight.text),
       meta_url: url(~p"/books/#{book.slug}/#{highlight.slug}"),
       meta_image: ArmitageWeb.Endpoint.url() <> "/og/quotes/png/#{highlight.slug}.png",
