@@ -4,14 +4,16 @@ defmodule Armitage.HighlightCard do
   """
 
   alias Armitage.{Highlight, Book}
+  alias Armitage.TextUtils
   alias ArmitageWeb.OGView
   import Phoenix.HTML.Engine, only: [strip_tags: 1]
+
 
 
   @output_dir Path.join(:code.priv_dir(:armitage), "static/og/quotes")
 
   def generate_svg(%Highlight{text: text, slug: slug, book: %Book{title: title, author: author}}) do
-    [line1, line2, line3] = split_text(clean_text(text))
+    [line1, line2, line3] = split_text(TextUtils.clean_text(text))
 
     assigns = %{
       line1: line1,
@@ -21,14 +23,6 @@ defmodule Armitage.HighlightCard do
       author: author
     }
 
-    #svg =
-      #Phoenix.Template.render_to_string(
-        #ArmitageWeb.OGHTML,
-        #"highlight",
-        #"html",
-        #assigns
-      #)
-    #svg = ArmitageWeb.OGHTML.highlight(assigns) |> Phoenix.HTML.safe_to_string()
     svg = Phoenix.Template.render_to_string(ArmitageWeb.OGHTML, "highlight", "html", assigns)
 
     File.mkdir_p!(@output_dir)
@@ -36,17 +30,6 @@ defmodule Armitage.HighlightCard do
     if not File.exists?(path) or File.read!(path) != svg do
       File.write!(path, svg)
     end
-  end
-
-  defp strip_tags(text) do
-    Regex.replace(~r/<[^>]*>/, text, "")
-  end
-
-  defp clean_text(text) do
-    text
-    |> String.replace(~r/<[^>]*>/, "")
-    |> String.trim()
-    |> strip_tags()
   end
 
   def split_text(text) do
