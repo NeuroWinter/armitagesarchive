@@ -21,7 +21,7 @@ defmodule ArmitageWeb.PageController do
     conn
     |> assign(:recent, recent)
     |> assign_meta(
-      meta_title: "Armitage Archive – Quotes & Highlights",
+      meta_title: "Quotes & Highlights",
       meta_description: truncate_description("A curated collection of book quotes, article highlights, and ideas saved using Readwise."),
       meta_url: url(~p"/"),
        meta_structured_data: [
