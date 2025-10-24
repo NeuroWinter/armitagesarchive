@@ -37,7 +37,7 @@ defmodule Armitage.Application do
   end
 
   defp maybe_scheduler do
-    if Application.get_env(:armitage,:enable_scheduler,:false) do
+    if Application.get_env(:armitage, :enable_scheduler, :false) do
       Armitage.Scheduler
     else
       nil
