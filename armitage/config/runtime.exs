@@ -46,5 +46,8 @@ if config_env() == :prod do
     scheme: "https",
     host: "armitagesarchive.com",
     port: 443
+  if sync_hours = System.get_env("SYNC_INTERVAL_HOURS") do
+    config :armitage, :sync_interval_hours, String.to_integer(sync_hours)
+  end
 end
 

@@ -20,3 +20,6 @@ config :logger, level: :info
 # of environment variables, is done on config/runtime.exs.
 
 config :armitage, :readwise_access_token, System.get_env("READWISE_ACCESS_TOKEN")
+
+config :armitage, :enable_scheduler, true
+

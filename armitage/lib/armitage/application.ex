@@ -17,8 +17,10 @@ defmodule Armitage.Application do
       # Start a worker by calling: Armitage.Worker.start_link(arg)
       # {Armitage.Worker, arg},
       # Start to serve requests, typically the last entry
+      maybe_scheduler(),
       ArmitageWeb.Endpoint
     ]
+    |> Enum.filter(& &1)
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
@@ -32,5 +34,13 @@ defmodule Armitage.Application do
   def config_change(changed, _new, removed) do
     ArmitageWeb.Endpoint.config_change(changed, removed)
     :ok
+  end
+
+  defp maybe_scheduler do
+    if Application.get_env(:armitage,:enable_scheduler,:false) do
+      Armitage.Scheduler
+    else
+      nil
+    end
   end
 end

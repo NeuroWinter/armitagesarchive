@@ -84,3 +84,9 @@ config :armitage, Armitage.Repo,
   show_sensitive_data_on_connection_error: true,
   stacktrace: true,
   pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10")
+
+
+# disable by default
+config :armitage, :enable_scheduler, System.get_env("ENABLE_SCHEDULER") == "true"
+# Much shorter if I want to test
+config :armitage, :sync_interval_hours, 1
