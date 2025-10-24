@@ -21,6 +21,7 @@ services:
     environment:
       MIX_ENV: dev
       DATABASE_URL: ecto://postgres:postgres@db:5432/armitage_dev
+      ENABLE_SCHEDULER: true
     ports:
       - "4000:4000"
     depends_on:
