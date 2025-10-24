@@ -1,4 +1,4 @@
-FROM hexpm/elixir:1.16.3-erlang-24.0.6-debian-bullseye-20250428-slim AS build-system
+FROM hexpm/elixir:1.16.3-erlang-26.2.3-debian-trixie-20251020-slim  AS build-system
 
 RUN apt-get update && \
     apt-get install -y \
@@ -23,11 +23,11 @@ RUN mix local.hex --force && \
 
 
 # Now lets have a smaller slimmer final image.
-FROM debian:bullseye-slim as final
+FROM debian:trixie-slim as final
 
 RUN apt-get update && \
     apt-get install -y \
-    libssl1.1 \
+    libssl3 \
     openssl \
     ca-certificates \
     curl
